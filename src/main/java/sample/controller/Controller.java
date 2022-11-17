@@ -1,27 +1,29 @@
 package sample.controller;
 
-import javafx.embed.swing.SwingFXUtils;
+import com.sun.istack.internal.NotNull;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import sample.contrastenhancement.Histogram;
+import sample.contrastenhancement.HistogramEqualization;
 
-import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorConvertOp;
 import java.awt.image.DataBufferByte;
+import java.awt.image.Raster;
+import java.awt.image.SampleModel;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
+
+import static sample.utils.Utils.*;
 
 
 public class Controller {
@@ -34,8 +36,6 @@ public class Controller {
     @FXML
     private ImageView image_changed;
 
-    @FXML
-    private ProgressIndicator indicator;
 
     @FXML
     private MenuBar menu_bar;
@@ -58,61 +58,37 @@ public class Controller {
         }
         String path = file.getAbsolutePath();//obtine calea absoluta catre acel fisier
 
-        setInitialImage(file);
+
         BufferedImage image = changeFileToBufferedImage(file);
         image = changeToGray(image);
+        setInitialImage(image);
         image_changed.setImage(changeBufferedImageToJavaFxImage(image));
-        computeHistogram(image);
+        enhanceContrast(image);
+
     }
 
-    private Image changeBufferedImageToJavaFxImage(BufferedImage image) {
-        return SwingFXUtils.toFXImage(image, null);
+    private void enhanceContrast(@NotNull BufferedImage image) {
+        Histogram histogram = computeHistogram(image);
+        HistogramEqualization.he(image.getHeight(),image.getWidth(),histogram);
+
+
+        Image newImage = createImageFromByteArray(image,histogram.getArr(),image.getHeight(),image.getWidth());
+        image_changed.setImage(newImage);
     }
 
-    private void computeHistogram(BufferedImage image) {
+
+
+    private Histogram computeHistogram(@NotNull BufferedImage image) {
         byte[] arr = getArrayOfPixels(image);
 
-        Histogram histogram = new Histogram(arr,image.getHeight(),image.getWidth());
+        return new Histogram(arr,image.getHeight(),image.getWidth());
     }
 
-    private byte[] getArrayOfPixels(BufferedImage image) {
-        return ((DataBufferByte)image.getData().getDataBuffer()).getData();
+
+
+    private void setInitialImage(BufferedImage image) {
+        image_selected.setImage(changeBufferedImageToJavaFxImage(image));//seteaza imaginea de afisat
     }
 
-    private BufferedImage changeToGray(BufferedImage image) {
 
-        // create a grayscale image the same size
-        BufferedImage gray = new BufferedImage(image.getWidth(), image.getHeight(),
-                BufferedImage.TYPE_BYTE_GRAY);
-
-        // convert the original colored image to grayscale
-        ColorConvertOp op = new ColorConvertOp(
-                image.getColorModel().getColorSpace(),
-                gray.getColorModel().getColorSpace(), null);
-        op.filter(image, gray);
-        image = null;
-        return gray;
-
-    }
-
-    public BufferedImage changeFileToBufferedImage(File file) {
-        BufferedImage image = null;
-        try {
-            image = ImageIO.read(file);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return image;
-    }
-
-    private void setInitialImage(File file) {
-        Image selected = null;//declara un obiect Image pentru a-l afisa
-        try {
-            selected = new Image(new FileInputStream(file));//salveaza un obiect Image pentru a-l afisa
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();//afiseaza eroare
-            return;//opreste functia
-        }
-        image_selected.setImage(selected);//seteaza imaginea de afisat
-    }
 }

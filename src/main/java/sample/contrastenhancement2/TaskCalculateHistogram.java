@@ -1,13 +1,15 @@
-package sample.contrastenhancement;
+package sample.contrastenhancement2;
 
 
 
-import java.util.Arrays;
+import javafx.scene.image.Image;
+import javafx.scene.image.PixelReader;
+
 import java.util.Map;
 
-public class Task extends Thread {
+public class TaskCalculateHistogram extends Thread {
 
-    byte[] image;
+    Image image;
     int startRow;
     int lastRow;
     private Histogram hist;
@@ -22,7 +24,7 @@ public class Task extends Thread {
      * @param startRow first row to be used for computation of histogram
      * @param lastRow  last row to be used for computation of histogram
      */
-    public Task(int threadNr,byte[] image, int startRow, int lastRow, int height, int width,final  Histogram hist) {
+    public TaskCalculateHistogram(int threadNr, Image image, int startRow, int lastRow, int height, int width, final Histogram hist) {
         if (startRow > lastRow || startRow > height || lastRow > height){
             return;
         }
@@ -37,9 +39,10 @@ public class Task extends Thread {
 
     @Override
     public void run() {
+        PixelReader reader= image.getPixelReader();
         for (int row = startRow; row <= lastRow; ++row) {
             for (int column = 0; column < width; ++column) {
-                byte grayLevel = image[column + row * width];
+                byte grayLevel = (byte) reader.getArgb(column,row);
                 long val = 0;
                 synchronized (hist) {
                     Map<Byte,Long> localHist = hist.getHist();
