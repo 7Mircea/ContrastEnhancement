@@ -60,9 +60,6 @@ public class Histogram {
         SortedMap<Byte, Double> localPDF = selectLocal(pdf, partition);
         if (partition == -1) {//calculate pdf for entire histogram
             for (byte key : hist.keySet()) {
-                if (key == -128) {
-                    System.out.println("gray level discovered while searching for -128");
-                }
                 localPDF.put(key, hist.get(key) / (double) numberOfPixelsInThisPartition);
             }
             return;
@@ -98,7 +95,7 @@ public class Histogram {
             upperLimitGrayLevel = 128;
         for (SortedMap.Entry<Byte, Long> element : hist.entrySet()) {
             //<grayLevel,nrOfPixelsWithThisGrayLevel>
-            if ( element.getKey() >= partitionThresholdPoints[partition - 1] && element.getKey() < upperLimitGrayLevel) {
+            if (element.getKey() >= partitionThresholdPoints[partition - 1] && element.getKey() < upperLimitGrayLevel) {
                 nrOfPixels += element.getValue();
             }
         }
@@ -168,5 +165,50 @@ public class Histogram {
             pdf.add(new TreeMap<>(Byte::compareTo));
             cdf.add(new TreeMap<>(Byte::compareTo));
         }
+    }
+
+    public void clippTheHistogram(byte[] partitionThresholdPoints,long[] clippingLevel) {
+        assert clippingLevel.length + 1 == partitionThresholdPoints.length;
+        this.partitionThresholdPoints = partitionThresholdPoints;
+        for (byte i = 1; i < partitionThresholdPoints.length; ++i) {
+            clippPartition(i,clippingLevel[i-1]);
+        }
+    }
+
+    private void clippPartition(byte partition, long clippingLevel) {
+        short upperLimitGrayLevel = partitionThresholdPoints[partition];
+        if (upperLimitGrayLevel == 127)
+            upperLimitGrayLevel = 128;
+        for (SortedMap.Entry<Byte, Long> element : hist.entrySet()) {
+            if (element.getKey() >= partitionThresholdPoints[partition - 1] && element.getKey() < upperLimitGrayLevel) {
+                if (element.getValue() > clippingLevel) {
+                    element.setValue(clippingLevel);
+                }
+            }
+        }
+    }
+
+    public long[] getMediansInPartitions(byte[] partitionThresholdPoints) {
+        this.partitionThresholdPoints = partitionThresholdPoints;
+        long[] medians = new long[3];
+        for (byte partition = 1; partition < partitionThresholdPoints.length; ++partition) {
+            medians[partition - 1] = getMedianInPartition(partition);
+        }
+        return medians;
+    }
+
+    private long getMedianInPartition(byte partition) {
+        List<Long> arr = new LinkedList<>();
+        short upperLimitGrayLevel = partitionThresholdPoints[partition];
+        if (upperLimitGrayLevel == 127)
+            upperLimitGrayLevel = 128;
+        for (SortedMap.Entry<Byte, Long> element : hist.entrySet()) {
+            //<grayLevel,nrOfPixelsWithThisGrayLevel>
+            if (element.getKey() >= partitionThresholdPoints[partition - 1] && element.getKey() < upperLimitGrayLevel) {
+                arr.add(element.getValue());
+            }
+        }
+        Collections.sort(arr);
+        return arr.get(arr.size() / 2);
     }
 }

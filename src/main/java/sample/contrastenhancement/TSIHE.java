@@ -10,8 +10,10 @@ public class TSIHE {
     public static void he(int height, int width, @NotNull Histogram histogramObj) {
         histogramObj.calculatePDF_CDF();
         byte[] partitionThresholdPoints = getGrayLevels(histogramObj);
-        histogramObj.calculatePDF_CDFForPartitions(partitionThresholdPoints);
 
+        clippTheHistogram(histogramObj,partitionThresholdPoints);
+
+        histogramObj.calculatePDF_CDFForPartitions(partitionThresholdPoints);
 
         byte[] arr = histogramObj.getArr();
         assert arr != null && arr.length > 0;
@@ -44,6 +46,12 @@ public class TSIHE {
         }
 
     }
+
+    private static void clippTheHistogram(Histogram histogramObj,byte[] partitionThresholdPoints) {
+        long[] medians = histogramObj.getMediansInPartitions(partitionThresholdPoints);
+        histogramObj.clippTheHistogram(partitionThresholdPoints,medians);
+    }
+
     private static byte[] getGrayLevels(final Histogram histogram) {
         final double cdfThreshold1 = 1D / 3D;
         final double cdfThreshold2 = 2D / 3D;

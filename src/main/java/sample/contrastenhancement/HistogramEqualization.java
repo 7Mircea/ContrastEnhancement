@@ -5,6 +5,9 @@ import com.sun.istack.internal.NotNull;
 import java.util.Iterator;
 import java.util.Map;
 
+import static sample.utils.ChangeType.btoS;
+import static sample.utils.ChangeType.stoB;
+
 public class HistogramEqualization {
 
     public static void he(int height, int width, @NotNull Histogram histogramObj) {
@@ -26,7 +29,24 @@ public class HistogramEqualization {
                 arr[j + i * width] = (byte) (255 * value - 128);
             }
         }
+        showMappingsOfHE(arr, cdf);
 
+    }
+
+    private static void showMappingsOfHE(byte[] arr, Map<Byte, Double> cdf) {
+        for (Map.Entry<Byte, Double> el : cdf.entrySet()) {
+//            System.out.println("old:" + el.getKey() + " new:" + ((byte) (255 * el.getValue() - 128)));
+            short old = btoS(el.getKey());
+            double newValue = 255 * el.getValue();
+            byte cast = (byte) newValue;
+
+            if (Math.abs(old - newValue) > 50) {
+                if (newValue != cast) {
+                    System.out.println("old value " + old + " new value : " + newValue + " new value cast to byte: " + cast);
+//                    System.out.println("cdf for   " + old + " converted " + stoB(old) + " is " + cdf.get(stoB(old)));
+                }
+            }
+        }
     }
 
     private static void showEntriesOfCDF(Map<Byte, Double> cdf) {

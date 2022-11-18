@@ -17,10 +17,6 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-//        Authentification auth = new Authentification();//creaza un obiect de autentificare
-//        boolean authorizedPerson = auth.display();//afiseaza fereastra de autentificare
-//        if (!authorizedPerson)//daca persoana nu a fost autorizata opreste aplicatia
-//            return;
         Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("sample.fxml"));//obtine obiectul parinte pentru GUI
         primaryStage.setTitle("Image Mirroring");//seteaza-i un titlu
         primaryStage.setScene(new Scene(root, 1280, 720));//seteaza fereastra principala si dimensiunile acesteia
