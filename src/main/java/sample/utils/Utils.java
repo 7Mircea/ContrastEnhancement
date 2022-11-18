@@ -6,33 +6,28 @@ import javafx.scene.image.Image;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.*;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 
 import static java.awt.image.BufferedImage.TYPE_BYTE_GRAY;
 
 public class Utils {
-    public static BufferedImage createBufferedImageFromByteArr(byte[] arr, int height, int width) {
-        BufferedImage image = new BufferedImage(width, height, TYPE_BYTE_GRAY);
-        try {
-//            ByteArrayOutputStream out = new ByteArrayOutputStream();
-//            out.write(arr);
-//
-//            ImageIO.write(image, "png", out);
-//            File outputfile = new File("image.jpg");
-//            ImageIO.write(bufferedImage, "jpg", outputfile);
-            ByteArrayInputStream in = new ByteArrayInputStream(arr);
-            int availableBytes = in.available();
-            System.out.println("available bytes " + availableBytes);
-            image = ImageIO.read(in);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return image;
+
+    public static Image createImageFromByteArray(BufferedImage bufferedImage, byte[] arr, int height, int width) {
+        setArrayOfPixels(bufferedImage, arr);
+        return changeBufferedImageToJavaFxImage(bufferedImage);
     }
 
-    public static Image createImageFromByteArray(BufferedImage bufferedImage,byte[] arr, int height, int width) {
-        setArrayOfPixels(bufferedImage,arr);
-        return changeBufferedImageToJavaFxImage(bufferedImage);
+
+    /**
+     * creates a hard copy of original
+     * @param original image to be copied
+     * @return hard copy of original
+     */
+    public static BufferedImage createCopyImage(BufferedImage original) {
+        BufferedImage newImage = new BufferedImage(original.getWidth(), original.getHeight(), TYPE_BYTE_GRAY);
+        setArrayOfPixels(newImage,((DataBufferByte)original.getData().getDataBuffer()).getData());
+        return newImage;
     }
 
     public static Image changeBufferedImageToJavaFxImage(BufferedImage image) {
@@ -67,19 +62,18 @@ public class Utils {
     }
 
     /**
-     *
      * @param image will have the contents changed to those of arr
-     * @param arr new content for image
+     * @param arr   new content for image
      */
-    public static void setArrayOfPixels(BufferedImage image,byte[] arr) {
-        SampleModel sampleModel= image.getSampleModel();
-        DataBufferByte bufferByte = new DataBufferByte(arr,arr.length);
-        Raster r =Raster.createRaster(sampleModel,bufferByte,new Point());
+    public static void setArrayOfPixels(BufferedImage image, byte[] arr) {
+        SampleModel sampleModel = image.getSampleModel();
+        DataBufferByte bufferByte = new DataBufferByte(arr, arr.length);
+        Raster r = Raster.createRaster(sampleModel, bufferByte, new Point());
         image.setData(r);
     }
 
     public static byte[] getArrayOfPixels(BufferedImage image) {
-        return ((DataBufferByte)image.getData().getDataBuffer()).getData();
+        return ((DataBufferByte) image.getData().getDataBuffer()).getData();
     }
 
 }

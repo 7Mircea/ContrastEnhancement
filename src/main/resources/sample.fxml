@@ -8,22 +8,34 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.controller.Controller">
-   <children>
-      <MenuBar fx:id="menu_bar">
-        <menus>
-          <Menu fx:id="file" mnemonicParsing="false" text="File">
-            <items>
-              <MenuItem fx:id="menu_item" mnemonicParsing="false" onAction="#chooseFile" text="Select File" />
-            </items>
-          </Menu>
-        </menus>
-      </MenuBar>
-      <AnchorPane fx:id="anchor_pane" prefHeight="593.0" prefWidth="876.0">
-         <children>
-            <ImageView fx:id="image_selected" fitHeight="800.0" fitWidth="500.0" layoutX="14.0" layoutY="14.0" pickOnBounds="true" preserveRatio="true" />
-            <ImageView fx:id="image_changed" fitHeight="800.0" fitWidth="500.0" layoutX="640.0" layoutY="14.0" pickOnBounds="true" preserveRatio="true" />
-         </children>
-      </AnchorPane>
-   </children>
+<?import javafx.scene.chart.AreaChart?>
+<?import org.jfree.chart.fx.ChartViewer?>
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0"
+      prefWidth="1280.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="sample.controller.Controller">
+    <children>
+        <MenuBar fx:id="menu_bar">
+            <menus>
+                <Menu fx:id="file" mnemonicParsing="false" text="File">
+                    <items>
+                        <MenuItem fx:id="menu_item" mnemonicParsing="false" onAction="#chooseFile" text="Select File"/>
+                    </items>
+                </Menu>
+            </menus>
+        </MenuBar>
+        <AnchorPane fx:id="anchor_pane" prefHeight="1080" prefWidth="1920">
+            <children>
+                <ImageView fx:id="image_selected" fitHeight="400.0" fitWidth="500.0" layoutX="14.0" layoutY="14.0"
+                           pickOnBounds="true" preserveRatio="true"/>
+                <ImageView fx:id="image_selected_hist" fitHeight="200" fitWidth="500" layoutX="14.0" layoutY="428.0"   />
+                <ImageView fx:id="histogram_equalization" fitHeight="400.0" fitWidth="500.0" layoutX="640.0"
+                           layoutY="14.0" pickOnBounds="true" preserveRatio="true"/>
+                <ImageView fx:id="histogram_equalization_hist" layoutX="640.0" layoutY="428.0" fitHeight="200" fitWidth="500"  />
+                <ImageView fx:id="tsihe" fitHeight="400.0" fitWidth="500.0" layoutX="1154.0" layoutY="14.0"
+                           pickOnBounds="true" preserveRatio="true"/>
+                <ImageView fx:id="tsihe_hist" layoutX="1154.0" layoutY="428.0" fitHeight="200" fitWidth="500"  />
+
+            </children>
+        </AnchorPane>
+    </children>
 </VBox>

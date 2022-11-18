@@ -8,7 +8,7 @@ import java.util.Map;
 public class HistogramEqualization {
 
     public static void he(int height, int width, @NotNull Histogram histogramObj) {
-        histogramObj.calculateHE();
+        histogramObj.calculatePDF_CDF();
         Map<Byte, Double> cdf = histogramObj.getCdf().get(0);
         byte[] arr = histogramObj.getArr();
         if (cdf == null || cdf.isEmpty()) {
@@ -23,7 +23,7 @@ public class HistogramEqualization {
             for (int j = 0; j < width; ++j) {
                 byte grayLevel = arr[j + i * width];
                 double value = cdf.get(grayLevel);
-                arr[j + i * width] = (byte) (255 * value - 127);
+                arr[j + i * width] = (byte) (255 * value - 128);
             }
         }
 

@@ -11,22 +11,25 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.jfree.chart.JFreeChart;
 import sample.contrastenhancement.Histogram;
 import sample.contrastenhancement.HistogramEqualization;
+import sample.contrastenhancement.TSIHE;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.awt.image.Raster;
-import java.awt.image.SampleModel;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 
+import static sample.utils.HistogramDraw.createGraphicHistogram;
 import static sample.utils.Utils.*;
 
 
 public class Controller {
+    @FXML
+    public ImageView image_selected_hist;
+    @FXML
+    public ImageView histogram_equalization_hist;
+    @FXML
+    public ImageView tsihe_hist;
     @FXML
     private AnchorPane anchor_pane;
 
@@ -34,8 +37,9 @@ public class Controller {
     private ImageView image_selected;
 
     @FXML
-    private ImageView image_changed;
-
+    private ImageView histogram_equalization;
+    @FXML
+    public ImageView tsihe;
 
     @FXML
     private MenuBar menu_bar;
@@ -59,31 +63,53 @@ public class Controller {
         String path = file.getAbsolutePath();//obtine calea absoluta catre acel fisier
 
 
+
+
         BufferedImage image = changeFileToBufferedImage(file);
+        if (image == null) {
+            System.out.println("file type not supported");
+            return;
+        }
         image = changeToGray(image);
         setInitialImage(image);
-        image_changed.setImage(changeBufferedImageToJavaFxImage(image));
-        enhanceContrast(image);
+        displayHistogram(image, image_selected_hist);
 
+        histogram_equalization.setImage(changeBufferedImageToJavaFxImage(image));
+        BufferedImage imageHE = createCopyImage(image);
+        enhanceContrast(imageHE);
+        displayHistogram(imageHE, histogram_equalization_hist);
+        BufferedImage imageTSIHE =createCopyImage(image);
+        enhanceContrastWithTsihe(imageTSIHE);
+        displayHistogram(imageTSIHE,tsihe_hist);
+    }
+
+    private void displayHistogram(BufferedImage image, ImageView imageView) {
+        JFreeChart chart = createGraphicHistogram(image);
+        BufferedImage chartImage =  chart.createBufferedImage(image.getWidth(),image.getHeight());
+        imageView.setImage(changeBufferedImageToJavaFxImage(chartImage));
+    }
+
+    private void enhanceContrastWithTsihe(BufferedImage image) {
+        Histogram histogram = computeHistogram(image);
+        TSIHE.he(image.getHeight(),image.getWidth(),histogram);
+        Image newImage = createImageFromByteArray(image, histogram.getArr(), image.getHeight(), image.getWidth());
+        tsihe.setImage(newImage);
     }
 
     private void enhanceContrast(@NotNull BufferedImage image) {
         Histogram histogram = computeHistogram(image);
-        HistogramEqualization.he(image.getHeight(),image.getWidth(),histogram);
+        HistogramEqualization.he(image.getHeight(), image.getWidth(), histogram);
 
-
-        Image newImage = createImageFromByteArray(image,histogram.getArr(),image.getHeight(),image.getWidth());
-        image_changed.setImage(newImage);
+        Image newImage = createImageFromByteArray(image, histogram.getArr(), image.getHeight(), image.getWidth());
+        histogram_equalization.setImage(newImage);
     }
-
 
 
     private Histogram computeHistogram(@NotNull BufferedImage image) {
         byte[] arr = getArrayOfPixels(image);
 
-        return new Histogram(arr,image.getHeight(),image.getWidth());
+        return new Histogram(arr, image.getHeight(), image.getWidth());
     }
-
 
 
     private void setInitialImage(BufferedImage image) {

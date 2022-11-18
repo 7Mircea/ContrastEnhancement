@@ -19,12 +19,11 @@ public class Histogram {
 
     public Histogram(@NotNull byte[] arr, int height, int width) {
         this.arr = arr;
-        hist = new TreeMap<Byte,Long>(Byte::compareTo);//loadFactor(second argument) - represents when the HashMap allocate
+        hist = new TreeMap<Byte, Long>(Byte::compareTo);//loadFactor(second argument) - represents when the HashMap allocate
         //more space and has values between 0 and 1. If you put 1 it reallocates space when the size(number of actual buckets)
         //is the same with the capacity(the space allocated for buckets).
         this.width = width;
         this.height = height;
-        initPDFAndCDF(1);
         createHistogram();
     }
 
@@ -47,7 +46,6 @@ public class Histogram {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println("histogram capacity" + hist.size());
     }
 
     /**
@@ -62,13 +60,20 @@ public class Histogram {
         SortedMap<Byte, Double> localPDF = selectLocal(pdf, partition);
         if (partition == -1) {//calculate pdf for entire histogram
             for (byte key : hist.keySet()) {
+                if (key == -128) {
+                    System.out.println("gray level discovered while searching for -128");
+                }
                 localPDF.put(key, hist.get(key) / (double) numberOfPixelsInThisPartition);
             }
             return;
         }
+        short upperLimitGrayLevel = partitionThresholdPoints[partition];
+        if (upperLimitGrayLevel == 127)
+            upperLimitGrayLevel = 128;
         for (byte key : hist.keySet()) {//calculate pdf only on partition i
-            if (key > partitionThresholdPoints[partition - 1] && key < partitionThresholdPoints[partition])
+            if (key >= partitionThresholdPoints[partition - 1] && key < upperLimitGrayLevel) {
                 localPDF.put(key, hist.get(key) / (double) numberOfPixelsInThisPartition);
+            }
         }
     }
 
@@ -77,7 +82,7 @@ public class Histogram {
     }
 
     private void calculatePDFOnPartition() {
-        for (byte i = 1; i <= partitionThresholdPoints.length; ++i) {
+        for (byte i = 1; i < partitionThresholdPoints.length; ++i) {
             calculatePDF(i, calculateNumberOfPixels(i));
         }
     }
@@ -88,9 +93,12 @@ public class Histogram {
         }
         long nrOfPixels = 0L;
 
+        short upperLimitGrayLevel = partitionThresholdPoints[partition];
+        if (upperLimitGrayLevel == 127)
+            upperLimitGrayLevel = 128;
         for (SortedMap.Entry<Byte, Long> element : hist.entrySet()) {
             //<grayLevel,nrOfPixelsWithThisGrayLevel>
-            if (element.getKey() < partitionThresholdPoints[partition] && element.getKey() > partitionThresholdPoints[partition]) {
+            if ( element.getKey() >= partitionThresholdPoints[partition - 1] && element.getKey() < upperLimitGrayLevel) {
                 nrOfPixels += element.getValue();
             }
         }
@@ -112,13 +120,18 @@ public class Histogram {
                 localCDF.put(el.getKey(), value);
             }
         } else {
+            short upperLimitGrayLevel = partitionThresholdPoints[partition];
+            if (upperLimitGrayLevel == 127)
+                upperLimitGrayLevel = 128;
             for (SortedMap.Entry<Byte, Double> el : localPDF.entrySet()) {
-                if (el.getKey() > partitionThresholdPoints[partition] && el.getKey() < partitionThresholdPoints[partition]) {
-                    value += el.getValue();
-                    if (value > 1)
-                        value = 1D;
-                    localCDF.put(el.getKey(), value);
+
+                assert el.getKey() >= partitionThresholdPoints[partition - 1] && el.getKey() < upperLimitGrayLevel;
+                value += el.getValue();
+                if (value > 1) {
+                    value = 1D;
                 }
+                localCDF.put(el.getKey(), value);
+
             }
         }
     }
@@ -127,26 +140,30 @@ public class Histogram {
      * should be called after calling calculatePDFOnPartition. Calculates Cumulative Density Function(CDF).
      */
     private void calculateCDFOnPartition() {
-        for (byte i = 1; i <= partitionThresholdPoints.length; ++i) {
+        for (byte i = 1; i < partitionThresholdPoints.length; ++i) {
             calculateCDF(i);
         }
     }
 
-    public final void calculateHE() {
+    public final void calculatePDF_CDF() {
         final byte partition = -1;
+        initPDFAndCDF((byte) 1);
         calculatePDF(partition, calculateNumberOfPixels(partition));
         calculateCDF(partition);
-        System.out.println("cdf size after he in histogram "+cdf.get(0).size());
     }
 
-    public final void calculateHEForPartitions(byte[] partitionThresholdPoints) {
+    public final void calculatePDF_CDFForPartitions(byte[] partitionThresholdPoints) {
         this.partitionThresholdPoints = partitionThresholdPoints;
-        initPDFAndCDF(partitionThresholdPoints.length-2);
+        initPDFAndCDF((byte) (partitionThresholdPoints.length - 1));
+        assert pdf.size() == partitionThresholdPoints.length - 1;
+        assert cdf.size() == partitionThresholdPoints.length - 1;
         calculatePDFOnPartition();
         calculateCDFOnPartition();
     }
 
-    private void initPDFAndCDF(int nrOfPartitions) {
+    private void initPDFAndCDF(byte nrOfPartitions) {
+        pdf.clear();
+        cdf.clear();
         for (byte i = 0; i < nrOfPartitions; ++i) {
             pdf.add(new TreeMap<>(Byte::compareTo));
             cdf.add(new TreeMap<>(Byte::compareTo));
