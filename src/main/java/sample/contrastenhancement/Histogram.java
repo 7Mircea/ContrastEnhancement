@@ -84,7 +84,7 @@ public class Histogram {
         }
     }
 
-    private long calculateNumberOfPixels(byte partition) {
+    public long calculateNumberOfPixels(byte partition) {
         if (partition == -1) {
             return ((long) width) * height;
         }
@@ -188,9 +188,15 @@ public class Histogram {
         }
     }
 
+    /**
+     * calculates the median of a given histogram. Thus it returns the median from an array of numbers
+     * each number representing the number of pixels for a given gray
+     * @param partitionThresholdPoints
+     * @return
+     */
     public long[] getMediansInPartitions(byte[] partitionThresholdPoints) {
         this.partitionThresholdPoints = partitionThresholdPoints;
-        long[] medians = new long[3];
+        long[] medians = new long[partitionThresholdPoints.length-1];
         for (byte partition = 1; partition < partitionThresholdPoints.length; ++partition) {
             medians[partition - 1] = getMedianInPartition(partition);
         }
@@ -210,5 +216,97 @@ public class Histogram {
         }
         Collections.sort(arr);
         return arr.get(arr.size() / 2);
+    }
+
+
+    /**
+     * calculates the median of a given histogram. Thus, it returns the median from an array of numbers
+     * each number representing the number of pixels for a given gray
+     * @param partitionThresholdPoints
+     * @return
+     */
+    public byte[] getMediansGrayLevelInPartitions(byte[] partitionThresholdPoints) {
+        this.partitionThresholdPoints = partitionThresholdPoints;
+        byte[] medians = new byte[partitionThresholdPoints.length-1];
+        for (byte partition = 1; partition < partitionThresholdPoints.length; ++partition) {
+            medians[partition - 1] = getMediansGrayLevelInPartition(partition);
+        }
+        return medians;
+    }
+
+    /**
+     * returns the grayLevel that represents the median value of an array consisting of all values
+     * for pixels of that specific partition. Do not confuse with getMedianInPartition(byte partition)
+     * @param partition
+     * @return gray level
+     */
+    private byte getMediansGrayLevelInPartition(byte partition) {
+        long nrOfPixels = 0;
+        long nrOfPixelsInPartition = calculateNumberOfPixels(partition);
+        short upperLimitGrayLevel = partitionThresholdPoints[partition];
+        if (upperLimitGrayLevel == 127)
+            upperLimitGrayLevel = 128;
+        for (SortedMap.Entry<Byte, Long> element : hist.entrySet()) {
+            //<grayLevel,nrOfPixelsWithThisGrayLevel>
+            if (element.getKey() >= partitionThresholdPoints[partition - 1] && element.getKey() < upperLimitGrayLevel) {
+                nrOfPixels += element.getValue();
+                if (nrOfPixels >= nrOfPixelsInPartition/2)
+                    return element.getKey();
+            }
+        }
+        throw new RuntimeException("nrOfPixels never equals totalNumberObFixels/2 although the algorithm iterates through all gray levels for this partition of histogram");
+    }
+    public byte[] getMeansGrayLevelInHistogram(byte[] partitionThresholdPoints) {
+        this.partitionThresholdPoints = partitionThresholdPoints;
+        byte[] means = new byte[partitionThresholdPoints.length-1];
+        for (byte partition = 1; partition < partitionThresholdPoints.length; ++partition) {
+            means[partition - 1] = getMeansGrayLevelInPartition(partition);
+        }
+        return means;
+    }
+
+    private byte getMeansGrayLevelInPartition(byte partition) {
+        long sum = 0L;
+        long nrOfPixelsInThisPartition = calculateNumberOfPixels(partition);
+        short upperLimitGrayLevel = partitionThresholdPoints[partition];
+        if (upperLimitGrayLevel == 127)
+            upperLimitGrayLevel = 128;
+        for (SortedMap.Entry<Byte, Long> element : hist.entrySet()) {
+            //<grayLevel,nrOfPixelsWithThisGrayLevel>
+            if (element.getKey() >= partitionThresholdPoints[partition - 1] && element.getKey() < upperLimitGrayLevel) {
+                sum += element.getValue()*element.getKey();
+            }
+        }
+        return (byte)(sum/(double)nrOfPixelsInThisPartition);
+    }
+
+    /**
+     * calculates the mean of a given histogram. Thus it returns the median from an array of numbers
+     * each number representing the number of pixels for a given gray
+     * @param partitionThresholdPoints
+     * @return
+     */
+    public long[] getMeansInHistogram(byte[] partitionThresholdPoints) {
+        this.partitionThresholdPoints = partitionThresholdPoints;
+        long[] means = new long[partitionThresholdPoints.length-1];
+        for (byte partition = 1; partition < partitionThresholdPoints.length; ++partition) {
+            means[partition - 1] = getMeansInPartition(partition);
+        }
+        return means;
+    }
+
+    private long getMeansInPartition(byte partition) {
+        long sum = 0L;
+        long nrOfPixelsInHistogram = calculateNumberOfPixels(partition);
+        short upperLimitGrayLevel = partitionThresholdPoints[partition];
+        if (upperLimitGrayLevel == 127)
+            upperLimitGrayLevel = 128;
+        for (SortedMap.Entry<Byte, Long> element : hist.entrySet()) {
+            //<grayLevel,nrOfPixelsWithThisGrayLevel>
+            if (element.getKey() >= partitionThresholdPoints[partition - 1] && element.getKey() < upperLimitGrayLevel) {
+                sum += element.getValue();
+            }
+        }
+        return nrOfPixelsInHistogram;
     }
 }

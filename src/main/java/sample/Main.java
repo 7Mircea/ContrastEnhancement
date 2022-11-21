@@ -6,6 +6,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import java.util.Objects;
+
 /**
  * Se ocupă cu procesarea propriu-zisa a imaginii. Sunt folosite urmatoarele controale
  * diferite de cele din Authentication:
@@ -15,11 +17,14 @@ public class Main extends Application {
     private static String numeFisierSursa;
     private static String numeFisierDestinatie;
 
+    private static final int resolutionWidth = 1910;
+    private static final int resolutionHeight = 1070;
+
     @Override
-    public void start(Stage primaryStage) throws Exception{
-        Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("sample.fxml"));//obtine obiectul parinte pentru GUI
-        primaryStage.setTitle("Image Mirroring");//seteaza-i un titlu
-        primaryStage.setScene(new Scene(root, 1280, 720));//seteaza fereastra principala si dimensiunile acesteia
+    public void start(Stage primaryStage) throws Exception {
+        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getClassLoader().getResource("sample.fxml")));//obtine obiectul parinte pentru GUI
+        primaryStage.setTitle("Image Contrast Enhancement");//seteaza-i un titlu
+        primaryStage.setScene(new Scene(root, resolutionWidth, resolutionHeight));//seteaza fereastra principala si dimensiunile acesteia
         //in pixeli
         primaryStage.show();//afiseaza fereastra
     }

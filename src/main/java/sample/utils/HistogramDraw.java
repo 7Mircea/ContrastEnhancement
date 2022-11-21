@@ -1,5 +1,6 @@
 package sample.utils;
 
+import javafx.scene.image.ImageView;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
@@ -8,7 +9,15 @@ import org.jfree.data.statistics.HistogramDataset;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 
+import static sample.utils.Utils.changeBufferedImageToJavaFxImage;
+
 public class HistogramDraw {
+
+    public static void displayHistogram(BufferedImage image, ImageView imageView) {
+        JFreeChart chart = createGraphicHistogram(image);
+        BufferedImage chartImage = chart.createBufferedImage(image.getWidth(), image.getHeight());
+        imageView.setImage(changeBufferedImageToJavaFxImage(chartImage));
+    }
 
     public static JFreeChart createGraphicHistogram(BufferedImage image) {
         // dataset

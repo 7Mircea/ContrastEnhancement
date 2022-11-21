@@ -29,7 +29,6 @@ public class HistogramEqualization {
                 arr[j + i * width] = (byte) (255 * value - 128);
             }
         }
-        showMappingsOfHE(arr, cdf);
 
     }
 

@@ -3,6 +3,9 @@ package sample.controller;
 import com.sun.istack.internal.NotNull;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -14,12 +17,15 @@ import javafx.stage.Stage;
 import org.jfree.chart.JFreeChart;
 import sample.contrastenhancement.Histogram;
 import sample.contrastenhancement.HistogramEqualization;
+import sample.contrastenhancement.PLTHE;
 import sample.contrastenhancement.TSIHE;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 
 import static sample.utils.HistogramDraw.createGraphicHistogram;
+import static sample.utils.HistogramDraw.displayHistogram;
 import static sample.utils.Utils.*;
 
 
@@ -30,6 +36,10 @@ public class Controller {
     public ImageView histogram_equalization_hist;
     @FXML
     public ImageView tsihe_hist;
+    @FXML
+    public ImageView plthe;
+    @FXML
+    public ImageView plthe_hist;
     @FXML
     private AnchorPane anchor_pane;
 
@@ -50,6 +60,9 @@ public class Controller {
     @FXML
     private MenuItem menu_item;
 
+    private static final int resolutionWidth = 1910;
+    private static final int resolutionHeight = 1070;
+
 
     @FXML
     private void chooseFile(ActionEvent event) {
@@ -63,35 +76,92 @@ public class Controller {
         String path = file.getAbsolutePath();//obtine calea absoluta catre acel fisier
 
 
-
-
-        BufferedImage image = changeFileToBufferedImage(file);
-        if (image == null) {
+        BufferedImage originalImage = changeFileToBufferedImage(file);
+        if (originalImage == null) {
             System.out.println("file type not supported");
             return;
         }
-        image = changeToGray(image);
+        final BufferedImage image = changeToGray(originalImage);
         setInitialImage(image);
-        displayHistogram(image, image_selected_hist);
 
         histogram_equalization.setImage(changeBufferedImageToJavaFxImage(image));
         BufferedImage imageHE = createCopyImage(image);
         enhanceContrast(imageHE);
-        displayHistogram(imageHE, histogram_equalization_hist);
-        BufferedImage imageTSIHE =createCopyImage(image);
+
+        BufferedImage imageTSIHE = createCopyImage(image);
         enhanceContrastWithTsihe(imageTSIHE);
-        displayHistogram(imageTSIHE,tsihe_hist);
+
+        BufferedImage imagePLTHE = createCopyImage(image);
+        enhanceContrastWithPlthe(imagePLTHE);
+
+        createNewWindows(image,imageHE,imageTSIHE,imagePLTHE);
     }
 
-    private void displayHistogram(BufferedImage image, ImageView imageView) {
-        JFreeChart chart = createGraphicHistogram(image);
-        BufferedImage chartImage =  chart.createBufferedImage(image.getWidth(),image.getHeight());
-        imageView.setImage(changeBufferedImageToJavaFxImage(chartImage));
+    private void createNewWindows(BufferedImage imageGray, BufferedImage imageHE, BufferedImage imageTSIHE, BufferedImage imagePLTHE) {
+        FXMLLoader grayLoader = new FXMLLoader(getClass().getClassLoader().getResource("gray.fxml"));
+        FXMLLoader heLoader = new FXMLLoader(getClass().getClassLoader().getResource("he.fxml"));
+        FXMLLoader tsiheLoader = new FXMLLoader(getClass().getClassLoader().getResource("tsihe.fxml"));
+        FXMLLoader pltheLoader = new FXMLLoader(getClass().getClassLoader().getResource("plthe.fxml"));
+
+        Parent rootGray;
+        Parent rootHE;
+        Parent rootTSIHE;
+        Parent rootPLTHE;
+        try {
+            rootGray = grayLoader.load();
+            rootHE = heLoader.load();//obtine obiectul parinte pentru GUI
+            rootTSIHE = tsiheLoader.load();//obtine obiectul parinte pentru GUI
+            rootPLTHE = pltheLoader.load();//obtine obiectul parinte pentru GUI
+        } catch (IOException e) {
+            System.out.println("error ar reading fxml ui files");
+            e.printStackTrace();
+            return;
+        }
+
+        GrayController grayController = grayLoader.getController();
+        grayController.setImage(imageGray);
+        grayController.setHistogram(imageGray);
+
+        HEController heController = heLoader.getController();
+        heController.setImage(imageHE);
+        heController.setHistogram(imageHE);
+        TSIHEController tsihe = tsiheLoader.getController();
+        tsihe.setImage(imageTSIHE);
+        tsihe.setHistogram(imageTSIHE);
+        PLTHEController plthe = pltheLoader.getController();
+        plthe.setImage(imagePLTHE);
+        plthe.setHistogram(imagePLTHE);
+
+        Stage stageGray = new Stage();
+        stageGray.setTitle("Gray image");
+        stageGray.setScene(new Scene(rootGray, resolutionWidth, resolutionHeight));
+        stageGray.show();
+        Stage stageHE = new Stage();
+        stageHE.setTitle("Histogram Equalization");
+        stageHE.setScene(new Scene(rootHE, resolutionWidth, resolutionHeight));
+        stageHE.show();
+        Stage stageTSIHE = new Stage();
+        stageTSIHE.setTitle("Tripartite Sub-Image Histogram Equalization");
+        stageTSIHE.setScene(new Scene(rootTSIHE, resolutionWidth, resolutionHeight));
+        stageTSIHE.show();
+        Stage stagePLTHE = new Stage();
+        stagePLTHE.setTitle("Plateau limit-based tri-histogram equalisation");
+        stagePLTHE.setScene(new Scene(rootPLTHE, resolutionWidth, resolutionHeight));
+        stagePLTHE.show();
     }
+
+    private void enhanceContrastWithPlthe(BufferedImage image) {
+        Histogram histogram = computeHistogram(image);
+        PLTHE.he(image.getHeight(), image.getWidth(), histogram);
+        Image newImage = createImageFromByteArray(image, histogram.getArr(), image.getHeight(), image.getWidth());
+        plthe.setImage(newImage);
+    }
+
+
 
     private void enhanceContrastWithTsihe(BufferedImage image) {
         Histogram histogram = computeHistogram(image);
-        TSIHE.he(image.getHeight(),image.getWidth(),histogram);
+        TSIHE.he(image.getHeight(), image.getWidth(), histogram);
         Image newImage = createImageFromByteArray(image, histogram.getArr(), image.getHeight(), image.getWidth());
         tsihe.setImage(newImage);
     }
