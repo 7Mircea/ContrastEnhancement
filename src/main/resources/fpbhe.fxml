@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="sample.controller.GrayController"
+            fx:controller="sample.controller.FPBHEController"
             prefHeight="400.0" prefWidth="600.0">
     <children>
         <ImageView fx:id="image_selected" fitHeight="400.0" fitWidth="1000.0" layoutX="14.0" layoutY="14.0"

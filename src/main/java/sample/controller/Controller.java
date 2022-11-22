@@ -14,7 +14,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import org.jfree.chart.JFreeChart;
 import sample.contrastenhancement.Histogram;
 import sample.contrastenhancement.HistogramEqualization;
 import sample.contrastenhancement.PLTHE;
@@ -24,22 +23,12 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-import static sample.utils.HistogramDraw.createGraphicHistogram;
-import static sample.utils.HistogramDraw.displayHistogram;
 import static sample.utils.Utils.*;
 
 
 public class Controller {
     @FXML
-    public ImageView image_selected_hist;
-    @FXML
-    public ImageView histogram_equalization_hist;
-    @FXML
-    public ImageView tsihe_hist;
-    @FXML
-    public ImageView plthe;
-    @FXML
-    public ImageView plthe_hist;
+    private ImageView plthe;
     @FXML
     private AnchorPane anchor_pane;
 
@@ -49,16 +38,7 @@ public class Controller {
     @FXML
     private ImageView histogram_equalization;
     @FXML
-    public ImageView tsihe;
-
-    @FXML
-    private MenuBar menu_bar;
-
-    @FXML
-    private Menu file;
-
-    @FXML
-    private MenuItem menu_item;
+    private ImageView tsihe;
 
     private static final int resolutionWidth = 1910;
     private static final int resolutionHeight = 1070;
@@ -94,7 +74,7 @@ public class Controller {
         BufferedImage imagePLTHE = createCopyImage(image);
         enhanceContrastWithPlthe(imagePLTHE);
 
-        createNewWindows(image,imageHE,imageTSIHE,imagePLTHE);
+        createNewWindows(image, imageHE, imageTSIHE, imagePLTHE);
     }
 
     private void createNewWindows(BufferedImage imageGray, BufferedImage imageHE, BufferedImage imageTSIHE, BufferedImage imagePLTHE) {
@@ -156,7 +136,6 @@ public class Controller {
         Image newImage = createImageFromByteArray(image, histogram.getArr(), image.getHeight(), image.getWidth());
         plthe.setImage(newImage);
     }
-
 
 
     private void enhanceContrastWithTsihe(BufferedImage image) {
