@@ -117,8 +117,8 @@ public class Controller {
         plthe.setImage(imagePLTHE);
         plthe.setHistogram(imagePLTHE);
         FPBHEController fpbhe = fpbheLoader.getController();
-        plthe.setImage(imageFPBHE);
-        plthe.setHistogram(imageFPBHE);
+        fpbhe.setImage(imageFPBHE);
+        fpbhe.setHistogram(imageFPBHE);
 
         Stage stageGray = new Stage();
         stageGray.setTitle("Gray image");

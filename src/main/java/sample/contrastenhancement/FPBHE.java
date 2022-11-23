@@ -4,6 +4,7 @@ import com.sun.istack.internal.NotNull;
 
 import java.util.Iterator;
 import java.util.SortedMap;
+import java.util.stream.Collectors;
 
 import static sample.utils.ChangeType.btoS;
 import static sample.utils.ChangeType.dtoB;
@@ -18,12 +19,21 @@ public class FPBHE {
         short splitThreshold = getSplitThreshold(eps);
         System.out.println("split threshold " + splitThreshold);
         short U = getU(histogramObj, gamma, splitThreshold);
-        Integer Su = 0;
-        Integer So = 0;
-        getSuSo(histogramObj, U, Su, So);
-        System.out.println("Su " + Su + " So " + So);
 
+        int[] SuSo=getSuSo(histogramObj, U);
+        System.out.println("Su " + SuSo[0] + " So " + SuSo[1]);
+        addSuSo(histogramObj, U, SuSo[0], SuSo[1]);
         he(histogramObj, new short[]{0, splitThreshold, 255});
+    }
+
+    private static void addSuSo(Histogram histogramObj, final short U, final Integer Su, final Integer So) {
+        for (SortedMap.Entry<Short, Integer> el : histogramObj.getHist().entrySet()) {
+            if (el.getKey() < U) {
+                el.setValue(el.getValue() + Su);
+            } else {
+                el.setValue(el.getValue() + So);
+            }
+        }
     }
 
     private static void he(Histogram histogramObj, short[] partitionThresholdPoints) {
@@ -56,17 +66,27 @@ public class FPBHE {
         }
     }
 
-    private static void getSuSo(final Histogram histogramObj, final short U, Integer Su, Integer So) {
+    private static int[] getSuSo(final Histogram histogramObj, final short U) {
         int[] histogramMeans = histogramObj.getMeansInHistogram(new short[]{0, U, 255});
         int histogramMean = histogramMeans[0];
-        int nrOfPixels = histogramObj.calculateNumberOfPixels((byte) 1);
+        short nrOfGrayLevels1 = 0;
+        short nrOfGrayLevels2 = 0;
         SortedMap<Short, Integer> hist = histogramObj.getHist();
-        long sum = 0;
+        long sum1 = 0;
+        long sum2 = 0;
         for (SortedMap.Entry<Short, Integer> el : hist.entrySet()) {
-            sum += Math.pow(el.getValue() - histogramMean, 2);
+            if (el.getKey() < U) {
+                sum1 += Math.pow(el.getValue() - histogramMean, 2);
+                ++nrOfGrayLevels1;
+            } else {
+                sum2 += Math.pow(el.getValue() - histogramMean, 2);
+                ++nrOfGrayLevels2;
+            }
         }
-        Su = (int) Math.sqrt(sum / (double) nrOfPixels);
-        So = (int) Math.sqrt(sum / (double) nrOfPixels);
+        int Su = (int) Math.sqrt(sum1 / (double) nrOfGrayLevels1);
+        int So = (int) Math.sqrt(sum2 / (double) nrOfGrayLevels2);
+        System.out.println("Su " + Su + "So " + So);
+        return new int[] {Su,So};
     }
 
     private static short getU(final Histogram histogramObj, final double gamma, final short Ts) {
