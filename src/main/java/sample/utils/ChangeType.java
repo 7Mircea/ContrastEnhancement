@@ -20,4 +20,15 @@ public class ChangeType {
         if (arg < 0 || arg > 255) System.out.println("arg " + arg + " not in [0,255]");
         return (byte) (arg - 128);
     }
+
+    /**
+     * convert short to byte. double should have values between [0,255]
+     *
+     * @param arg
+     * @return values between [-128,127]
+     */
+    public static byte dtoB(double arg) {
+        if (arg < 0 || arg > 255) System.out.println("arg " + arg + " not in [0,255]");
+        return (byte) (arg - 128);
+    }
 }

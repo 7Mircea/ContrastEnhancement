@@ -30,6 +30,8 @@
                            pickOnBounds="true" preserveRatio="true"/>
                 <ImageView fx:id="plthe" fitHeight="400.0" fitWidth="400.0" layoutX="14.0" layoutY="428.0"
                            pickOnBounds="true" preserveRatio="true"/>
+                <ImageView fx:id="fpbhe" fitHeight="400.0" fitWidth="400.0" layoutX="428.0" layoutY="428.0"
+                           pickOnBounds="true" preserveRatio="true"/>
             </children>
         </AnchorPane>
     </children>

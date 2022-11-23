@@ -1,8 +1,7 @@
 package sample.contrastenhancement;
 
 
-
-import java.util.Map;
+import java.util.SortedMap;
 
 public class TaskCalculateHistogram extends Thread {
 
@@ -21,8 +20,8 @@ public class TaskCalculateHistogram extends Thread {
      * @param startRow first row to be used for computation of histogram
      * @param lastRow  last row to be used for computation of histogram
      */
-    public TaskCalculateHistogram(int threadNr, byte[] image, int startRow, int lastRow, int height, int width, final  Histogram hist) {
-        if (startRow > lastRow || startRow > height || lastRow > height){
+    public TaskCalculateHistogram(int threadNr, byte[] image, int startRow, int lastRow, int height, int width, final Histogram hist) {
+        if (startRow > lastRow || startRow > height || lastRow > height) {
             return;
         }
         this.image = image;
@@ -31,17 +30,20 @@ public class TaskCalculateHistogram extends Thread {
         this.hist = hist;
         this.width = width;
         this.height = height;
-        this.threadNr  = threadNr;
+        this.threadNr = threadNr;
     }
 
     @Override
     public void run() {
         for (int row = startRow; row <= lastRow; ++row) {
             for (int column = 0; column < width; ++column) {
-                byte grayLevel = image[column + row * width];
-                long val = 0;
+                byte g = image[column + row * width];
+                short grayLevel = sample.utils.ChangeType.btoS(g);
+                int val = 0;
                 synchronized (hist) {
-                    Map<Byte,Long> localHist = hist.getHist();
+                    SortedMap<Short, Integer> localHist = hist.getHist();
+                    if (grayLevel == 255)
+                        System.out.println("gray level 255 found in original image");
                     if (localHist.containsKey(grayLevel))
                         val = localHist.get(grayLevel);
                     localHist.put(grayLevel, val + 1);

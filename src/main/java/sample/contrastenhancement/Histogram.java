@@ -7,10 +7,10 @@ import java.util.*;
 
 @Getter
 public class Histogram {
-    private final SortedMap<Byte, Long> hist;
-    private byte[] partitionThresholdPoints = null;//[0,pct,,pct2,final]
-    private final List<SortedMap<Byte, Double>> pdf = new LinkedList<>(); //pdf - probabilty density function
-    private final List<SortedMap<Byte, Double>> cdf = new LinkedList<>(); //cdf - cummulative density function
+    private final SortedMap<Short, Integer> hist;
+    private short[] partitionThresholdPoints = null;//[0,pct,,pct2,final]
+    private final List<SortedMap<Short, Double>> pdf = new LinkedList<>(); //pdf - probabilty density function
+    private final List<SortedMap<Short, Double>> cdf = new LinkedList<>(); //cdf - cummulative density function
     //    private BufferedImage image;
     private final int width;
     private final int height;
@@ -19,7 +19,7 @@ public class Histogram {
 
     public Histogram(@NotNull byte[] arr, int height, int width) {
         this.arr = arr;
-        hist = new TreeMap<Byte, Long>(Byte::compareTo);//loadFactor(second argument) - represents when the HashMap allocate
+        hist = new TreeMap<>(Short::compareTo);//loadFactor(second argument) - represents when the HashMap allocate
         //more space and has values between 0 and 1. If you put 1 it reallocates space when the size(number of actual buckets)
         //is the same with the capacity(the space allocated for buckets).
         this.width = width;
@@ -52,29 +52,28 @@ public class Histogram {
      * calculates probability density function(pdf) on selected partition if partition >= 1 or
      * on the entire histogram if partition equals -1
      */
-    private void calculatePDF(byte partition, long numberOfPixelsInThisPartition) {
+    private void calculatePDF(byte partition, int numberOfPixelsInThisPartition) {
         if (partition != -1 && partition < 1) {
             System.out.println("attempt to calculate pdf on non-existing partition " + partition);
             return;
         }
-        SortedMap<Byte, Double> localPDF = selectLocal(pdf, partition);
+        SortedMap<Short, Double> localPDF = selectLocal(pdf, partition);
         if (partition == -1) {//calculate pdf for entire histogram
-            for (byte key : hist.keySet()) {
+            for (Short key : hist.keySet()) {
                 localPDF.put(key, hist.get(key) / (double) numberOfPixelsInThisPartition);
             }
             return;
         }
-        short upperLimitGrayLevel = partitionThresholdPoints[partition];
-        if (upperLimitGrayLevel == 127)
-            upperLimitGrayLevel = 128;
-        for (byte key : hist.keySet()) {//calculate pdf only on partition i
-            if (key >= partitionThresholdPoints[partition - 1] && key < upperLimitGrayLevel) {
+        short upperLimmit = partitionThresholdPoints[partition];
+        upperLimmit = (upperLimmit == 255) ? (short)(256) : upperLimmit;
+        for (Short key : hist.keySet()) {//calculate pdf only on partition i
+            if (key >= partitionThresholdPoints[partition - 1] && key < upperLimmit) {
                 localPDF.put(key, hist.get(key) / (double) numberOfPixelsInThisPartition);
             }
         }
     }
 
-    private SortedMap<Byte, Double> selectLocal(List<SortedMap<Byte, Double>> list, byte partition) {
+    private SortedMap<Short, Double> selectLocal(List<SortedMap<Short, Double>> list, byte partition) {
         return (partition != -1) ? list.get(partition - 1) : list.get(0);
     }
 
@@ -84,18 +83,24 @@ public class Histogram {
         }
     }
 
-    public long calculateNumberOfPixels(byte partition) {
+    /**
+     * works only for pictures with resolution max 2GPixeli
+     *
+     * @param partition
+     * @return
+     */
+    public int calculateNumberOfPixels(byte partition) {
         if (partition == -1) {
-            return ((long) width) * height;
+            return width * height;
         }
-        long nrOfPixels = 0L;
+        int nrOfPixels = 0;
 
-        short upperLimitGrayLevel = partitionThresholdPoints[partition];
-        if (upperLimitGrayLevel == 127)
-            upperLimitGrayLevel = 128;
-        for (SortedMap.Entry<Byte, Long> element : hist.entrySet()) {
+
+        short upperLimmit = partitionThresholdPoints[partition];
+        upperLimmit = (upperLimmit == 255) ? (short)(256) : upperLimmit;
+        for (SortedMap.Entry<Short, Integer> element : hist.entrySet()) {
             //<grayLevel,nrOfPixelsWithThisGrayLevel>
-            if (element.getKey() >= partitionThresholdPoints[partition - 1] && element.getKey() < upperLimitGrayLevel) {
+            if (element.getKey() >= partitionThresholdPoints[partition - 1] && element.getKey() < upperLimmit) {
                 nrOfPixels += element.getValue();
             }
         }
@@ -106,29 +111,26 @@ public class Histogram {
      * should be called after calling calculatePDF. Calculates Cumulative Density Function(CDF).
      */
     private void calculateCDF(byte partition) {
-        SortedMap<Byte, Double> localPDF = selectLocal(pdf, partition);
-        SortedMap<Byte, Double> localCDF = selectLocal(cdf, partition);
+        SortedMap<Short, Double> localPDF = selectLocal(pdf, partition);
+        SortedMap<Short, Double> localCDF = selectLocal(cdf, partition);
         Double value = 0D;
         if (partition == -1) {
-            for (SortedMap.Entry<Byte, Double> el : localPDF.entrySet()) {
+            for (SortedMap.Entry<Short, Double> el : localPDF.entrySet()) {
                 value += el.getValue();
                 if (value > 1)
                     value = 1D;
                 localCDF.put(el.getKey(), value);
             }
         } else {
-            short upperLimitGrayLevel = partitionThresholdPoints[partition];
-            if (upperLimitGrayLevel == 127)
-                upperLimitGrayLevel = 128;
-            for (SortedMap.Entry<Byte, Double> el : localPDF.entrySet()) {
-
-                assert el.getKey() >= partitionThresholdPoints[partition - 1] && el.getKey() < upperLimitGrayLevel;
+            short upperLimmit = partitionThresholdPoints[partition];
+            upperLimmit = (upperLimmit == 255) ? (short)(256) : upperLimmit;
+            for (SortedMap.Entry<Short, Double> el : localPDF.entrySet()) {
+                assert el.getKey() >= partitionThresholdPoints[partition - 1] && el.getKey() < upperLimmit ;
                 value += el.getValue();
                 if (value > 1) {
                     value = 1D;
                 }
                 localCDF.put(el.getKey(), value);
-
             }
         }
     }
@@ -149,7 +151,7 @@ public class Histogram {
         calculateCDF(partition);
     }
 
-    public final void calculatePDF_CDFForPartitions(byte[] partitionThresholdPoints) {
+    public final void calculatePDF_CDFForPartitions(short[] partitionThresholdPoints) {
         this.partitionThresholdPoints = partitionThresholdPoints;
         initPDFAndCDF((byte) (partitionThresholdPoints.length - 1));
         assert pdf.size() == partitionThresholdPoints.length - 1;
@@ -162,25 +164,24 @@ public class Histogram {
         pdf.clear();
         cdf.clear();
         for (byte i = 0; i < nrOfPartitions; ++i) {
-            pdf.add(new TreeMap<>(Byte::compareTo));
-            cdf.add(new TreeMap<>(Byte::compareTo));
+            pdf.add(new TreeMap<>(Short::compareTo));
+            cdf.add(new TreeMap<>(Short::compareTo));
         }
     }
 
-    public void clippTheHistogram(byte[] partitionThresholdPoints,long[] clippingLevel) {
+    public void clippTheHistogram(short[] partitionThresholdPoints, int[] clippingLevel) {
         assert clippingLevel.length + 1 == partitionThresholdPoints.length;
         this.partitionThresholdPoints = partitionThresholdPoints;
         for (byte i = 1; i < partitionThresholdPoints.length; ++i) {
-            clippPartition(i,clippingLevel[i-1]);
+            clippPartition(i, clippingLevel[i - 1]);
         }
     }
 
-    private void clippPartition(byte partition, long clippingLevel) {
-        short upperLimitGrayLevel = partitionThresholdPoints[partition];
-        if (upperLimitGrayLevel == 127)
-            upperLimitGrayLevel = 128;
-        for (SortedMap.Entry<Byte, Long> element : hist.entrySet()) {
-            if (element.getKey() >= partitionThresholdPoints[partition - 1] && element.getKey() < upperLimitGrayLevel) {
+    private void clippPartition(byte partition, int clippingLevel) {
+        short upperLimmit = partitionThresholdPoints[partition];
+        upperLimmit = (upperLimmit == 255) ? (short)(256) : upperLimmit;
+        for (SortedMap.Entry<Short, Integer> element : hist.entrySet()) {
+            if (element.getKey() >= partitionThresholdPoints[partition - 1] && element.getKey() < upperLimmit) {
                 if (element.getValue() > clippingLevel) {
                     element.setValue(clippingLevel);
                 }
@@ -191,26 +192,26 @@ public class Histogram {
     /**
      * calculates the median of a given histogram. Thus it returns the median from an array of numbers
      * each number representing the number of pixels for a given gray
+     *
      * @param partitionThresholdPoints
      * @return
      */
-    public long[] getMediansInPartitions(byte[] partitionThresholdPoints) {
+    public int[] getMediansInPartitions(short[] partitionThresholdPoints) {
         this.partitionThresholdPoints = partitionThresholdPoints;
-        long[] medians = new long[partitionThresholdPoints.length-1];
+        int[] medians = new int[partitionThresholdPoints.length - 1];
         for (byte partition = 1; partition < partitionThresholdPoints.length; ++partition) {
             medians[partition - 1] = getMedianInPartition(partition);
         }
         return medians;
     }
 
-    private long getMedianInPartition(byte partition) {
-        List<Long> arr = new LinkedList<>();
-        short upperLimitGrayLevel = partitionThresholdPoints[partition];
-        if (upperLimitGrayLevel == 127)
-            upperLimitGrayLevel = 128;
-        for (SortedMap.Entry<Byte, Long> element : hist.entrySet()) {
+    private int getMedianInPartition(byte partition) {
+        List<Integer> arr = new LinkedList<>();
+        short upperLimmit = partitionThresholdPoints[partition];
+        upperLimmit = (upperLimmit == 255) ? (short)(256) : upperLimmit;
+        for (SortedMap.Entry<Short, Integer> element : hist.entrySet()) {
             //<grayLevel,nrOfPixelsWithThisGrayLevel>
-            if (element.getKey() >= partitionThresholdPoints[partition - 1] && element.getKey() < upperLimitGrayLevel) {
+            if (element.getKey() >= partitionThresholdPoints[partition - 1] && element.getKey() < upperLimmit) {
                 arr.add(element.getValue());
             }
         }
@@ -222,12 +223,13 @@ public class Histogram {
     /**
      * calculates the median of a given histogram. Thus, it returns the median from an array of numbers
      * each number representing the number of pixels for a given gray
+     *
      * @param partitionThresholdPoints
      * @return
      */
-    public byte[] getMediansGrayLevelInPartitions(byte[] partitionThresholdPoints) {
+    public short[] getMediansGrayLevelInPartitions(short[] partitionThresholdPoints) {
         this.partitionThresholdPoints = partitionThresholdPoints;
-        byte[] medians = new byte[partitionThresholdPoints.length-1];
+        short[] medians = new short[partitionThresholdPoints.length - 1];
         for (byte partition = 1; partition < partitionThresholdPoints.length; ++partition) {
             medians[partition - 1] = getMediansGrayLevelInPartition(partition);
         }
@@ -236,74 +238,74 @@ public class Histogram {
 
     /**
      * returns the grayLevel that represents the median value of an array consisting of all values
-     * for pixels of that specific partition. Do not confuse with getMedianInPartition(byte partition)
+     * for pixels of that specific partition. Do not confuse with getMedianInPartition(T partition)
+     *
      * @param partition
      * @return gray level
      */
-    private byte getMediansGrayLevelInPartition(byte partition) {
-        long nrOfPixels = 0;
-        long nrOfPixelsInPartition = calculateNumberOfPixels(partition);
-        short upperLimitGrayLevel = partitionThresholdPoints[partition];
-        if (upperLimitGrayLevel == 127)
-            upperLimitGrayLevel = 128;
-        for (SortedMap.Entry<Byte, Long> element : hist.entrySet()) {
+    private short getMediansGrayLevelInPartition(byte partition) {
+        int nrOfPixels = 0;
+        int nrOfPixelsInPartition = calculateNumberOfPixels(partition);
+        short upperLimmit = partitionThresholdPoints[partition];
+        upperLimmit = (upperLimmit == 255) ? (short)(256) : upperLimmit;
+        for (SortedMap.Entry<Short, Integer> element : hist.entrySet()) {
             //<grayLevel,nrOfPixelsWithThisGrayLevel>
-            if (element.getKey() >= partitionThresholdPoints[partition - 1] && element.getKey() < upperLimitGrayLevel) {
+            if (element.getKey() >= partitionThresholdPoints[partition - 1] && element.getKey() < upperLimmit) {
                 nrOfPixels += element.getValue();
-                if (nrOfPixels >= nrOfPixelsInPartition/2)
+                if (nrOfPixels >= nrOfPixelsInPartition / 2)
                     return element.getKey();
             }
         }
         throw new RuntimeException("nrOfPixels never equals totalNumberObFixels/2 although the algorithm iterates through all gray levels for this partition of histogram");
     }
-    public byte[] getMeansGrayLevelInHistogram(byte[] partitionThresholdPoints) {
+
+    public short[] getMeansGrayLevelInHistogram(short[] partitionThresholdPoints) {
         this.partitionThresholdPoints = partitionThresholdPoints;
-        byte[] means = new byte[partitionThresholdPoints.length-1];
+        short[] means = new short[partitionThresholdPoints.length - 1];
         for (byte partition = 1; partition < partitionThresholdPoints.length; ++partition) {
             means[partition - 1] = getMeansGrayLevelInPartition(partition);
         }
         return means;
     }
 
-    private byte getMeansGrayLevelInPartition(byte partition) {
-        long sum = 0L;
-        long nrOfPixelsInThisPartition = calculateNumberOfPixels(partition);
-        short upperLimitGrayLevel = partitionThresholdPoints[partition];
-        if (upperLimitGrayLevel == 127)
-            upperLimitGrayLevel = 128;
-        for (SortedMap.Entry<Byte, Long> element : hist.entrySet()) {
+    private short getMeansGrayLevelInPartition(byte partition) {
+        int sum = 0;
+        int nrOfPixelsInThisPartition = calculateNumberOfPixels(partition);
+        short upperLimmit = partitionThresholdPoints[partition];
+        upperLimmit = (upperLimmit == 255) ? (short)(256) : upperLimmit;
+        for (SortedMap.Entry<Short, Integer> element : hist.entrySet()) {
             //<grayLevel,nrOfPixelsWithThisGrayLevel>
-            if (element.getKey() >= partitionThresholdPoints[partition - 1] && element.getKey() < upperLimitGrayLevel) {
-                sum += element.getValue()*element.getKey();
+            if (element.getKey() >= partitionThresholdPoints[partition - 1] && element.getKey() < upperLimmit) {
+                sum += element.getValue() * element.getKey();
             }
         }
-        return (byte)(sum/(double)nrOfPixelsInThisPartition);
+        return (short) (sum / (double) nrOfPixelsInThisPartition);
     }
 
     /**
      * calculates the mean of a given histogram. Thus it returns the median from an array of numbers
      * each number representing the number of pixels for a given gray
+     *
      * @param partitionThresholdPoints
      * @return
      */
-    public long[] getMeansInHistogram(byte[] partitionThresholdPoints) {
+    public int[] getMeansInHistogram(short[] partitionThresholdPoints) {
         this.partitionThresholdPoints = partitionThresholdPoints;
-        long[] means = new long[partitionThresholdPoints.length-1];
+        int[] means = new int[partitionThresholdPoints.length - 1];
         for (byte partition = 1; partition < partitionThresholdPoints.length; ++partition) {
             means[partition - 1] = getMeansInPartition(partition);
         }
         return means;
     }
 
-    private long getMeansInPartition(byte partition) {
-        long sum = 0L;
-        long nrOfPixelsInHistogram = calculateNumberOfPixels(partition);
-        short upperLimitGrayLevel = partitionThresholdPoints[partition];
-        if (upperLimitGrayLevel == 127)
-            upperLimitGrayLevel = 128;
-        for (SortedMap.Entry<Byte, Long> element : hist.entrySet()) {
+    private int getMeansInPartition(byte partition) {
+        int sum = 0;
+        int nrOfPixelsInHistogram = calculateNumberOfPixels(partition);
+        short upperLimmit = partitionThresholdPoints[partition];
+        upperLimmit = (upperLimmit == 255) ? (short)(256) : upperLimmit;
+        for (SortedMap.Entry<Short, Integer> element : hist.entrySet()) {
             //<grayLevel,nrOfPixelsWithThisGrayLevel>
-            if (element.getKey() >= partitionThresholdPoints[partition - 1] && element.getKey() < upperLimitGrayLevel) {
+            if (element.getKey() >= partitionThresholdPoints[partition - 1] && element.getKey() < upperLimmit) {
                 sum += element.getValue();
             }
         }

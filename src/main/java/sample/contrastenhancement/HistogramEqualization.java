@@ -5,14 +5,13 @@ import com.sun.istack.internal.NotNull;
 import java.util.Iterator;
 import java.util.Map;
 
-import static sample.utils.ChangeType.btoS;
-import static sample.utils.ChangeType.stoB;
+import static sample.utils.ChangeType.*;
 
 public class HistogramEqualization {
 
     public static void he(int height, int width, @NotNull Histogram histogramObj) {
         histogramObj.calculatePDF_CDF();
-        Map<Byte, Double> cdf = histogramObj.getCdf().get(0);
+        Map<Short, Double> cdf = histogramObj.getCdf().get(0);
         byte[] arr = histogramObj.getArr();
         if (cdf == null || cdf.isEmpty()) {
             System.out.println("cdf is empty in HistogramEqualization.he()");
@@ -24,9 +23,13 @@ public class HistogramEqualization {
         }
         for (int i = 0; i < height; ++i) {
             for (int j = 0; j < width; ++j) {
-                byte grayLevel = arr[j + i * width];
+                short grayLevel = btoS(arr[j + i * width]) ;
+                if (grayLevel == 255) {
+                    System.out.println("gray level 255 found in HE");
+                }
                 double value = cdf.get(grayLevel);
-                arr[j + i * width] = (byte) (255 * value - 128);
+                assert value >=0 && value <=1;
+                arr[j + i * width] = dtoB(255 * value);
             }
         }
 

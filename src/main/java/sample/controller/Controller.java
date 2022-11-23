@@ -14,10 +14,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import sample.contrastenhancement.Histogram;
-import sample.contrastenhancement.HistogramEqualization;
-import sample.contrastenhancement.PLTHE;
-import sample.contrastenhancement.TSIHE;
+import sample.contrastenhancement.*;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -28,13 +25,13 @@ import static sample.utils.Utils.*;
 
 public class Controller {
     @FXML
+    private ImageView fpbhe;
+    @FXML
     private ImageView plthe;
     @FXML
     private AnchorPane anchor_pane;
-
     @FXML
     private ImageView image_selected;
-
     @FXML
     private ImageView histogram_equalization;
     @FXML
@@ -63,35 +60,44 @@ public class Controller {
         }
         final BufferedImage image = changeToGray(originalImage);
         setInitialImage(image);
-
         histogram_equalization.setImage(changeBufferedImageToJavaFxImage(image));
-        BufferedImage imageHE = createCopyImage(image);
-        enhanceContrast(imageHE);
 
-        BufferedImage imageTSIHE = createCopyImage(image);
-        enhanceContrastWithTsihe(imageTSIHE);
 
-        BufferedImage imagePLTHE = createCopyImage(image);
-        enhanceContrastWithPlthe(imagePLTHE);
+        BufferedImage imageHE = enhanceContrast(image);
+        BufferedImage imageTSIHE = enhanceContrastWithTsihe(image);
+        BufferedImage imagePLTHE = enhanceContrastWithPlthe(image);
+        BufferedImage imageFPBHE = enhanceContrastWithFpbhe(image);
 
-        createNewWindows(image, imageHE, imageTSIHE, imagePLTHE);
+        createNewWindows(image, imageHE, imageTSIHE, imagePLTHE, imageFPBHE);
     }
 
-    private void createNewWindows(BufferedImage imageGray, BufferedImage imageHE, BufferedImage imageTSIHE, BufferedImage imagePLTHE) {
+    private BufferedImage enhanceContrastWithFpbhe(BufferedImage image) {
+        BufferedImage imageFPBHE = createCopyImage(image);
+        Histogram histogram = computeHistogram(imageFPBHE);
+        FPBHE.he(histogram);
+        Image newImage = createImageFromByteArray(imageFPBHE, histogram.getArr(), imageFPBHE.getHeight(), imageFPBHE.getWidth());
+        fpbhe.setImage(newImage);
+        return imageFPBHE;
+    }
+
+    private void createNewWindows(BufferedImage imageGray, BufferedImage imageHE, BufferedImage imageTSIHE, BufferedImage imagePLTHE, BufferedImage imageFPBHE) {
         FXMLLoader grayLoader = new FXMLLoader(getClass().getClassLoader().getResource("gray.fxml"));
         FXMLLoader heLoader = new FXMLLoader(getClass().getClassLoader().getResource("he.fxml"));
         FXMLLoader tsiheLoader = new FXMLLoader(getClass().getClassLoader().getResource("tsihe.fxml"));
         FXMLLoader pltheLoader = new FXMLLoader(getClass().getClassLoader().getResource("plthe.fxml"));
+        FXMLLoader fpbheLoader = new FXMLLoader(getClass().getClassLoader().getResource("fpbhe.fxml"));
 
         Parent rootGray;
         Parent rootHE;
         Parent rootTSIHE;
         Parent rootPLTHE;
+        Parent rootFPBHE;
         try {
             rootGray = grayLoader.load();
             rootHE = heLoader.load();//obtine obiectul parinte pentru GUI
             rootTSIHE = tsiheLoader.load();//obtine obiectul parinte pentru GUI
             rootPLTHE = pltheLoader.load();//obtine obiectul parinte pentru GUI
+            rootFPBHE = fpbheLoader.load();//obtine obiectul parinte pentru GUI
         } catch (IOException e) {
             System.out.println("error ar reading fxml ui files");
             e.printStackTrace();
@@ -101,7 +107,6 @@ public class Controller {
         GrayController grayController = grayLoader.getController();
         grayController.setImage(imageGray);
         grayController.setHistogram(imageGray);
-
         HEController heController = heLoader.getController();
         heController.setImage(imageHE);
         heController.setHistogram(imageHE);
@@ -111,6 +116,9 @@ public class Controller {
         PLTHEController plthe = pltheLoader.getController();
         plthe.setImage(imagePLTHE);
         plthe.setHistogram(imagePLTHE);
+        FPBHEController fpbhe = fpbheLoader.getController();
+        plthe.setImage(imageFPBHE);
+        plthe.setHistogram(imageFPBHE);
 
         Stage stageGray = new Stage();
         stageGray.setTitle("Gray image");
@@ -128,29 +136,39 @@ public class Controller {
         stagePLTHE.setTitle("Plateau limit-based tri-histogram equalisation");
         stagePLTHE.setScene(new Scene(rootPLTHE, resolutionWidth, resolutionHeight));
         stagePLTHE.show();
+        Stage stageFPBHE = new Stage();
+        stageFPBHE.setTitle("Feature-preserving bi-histogram equalization");
+        stageFPBHE.setScene(new Scene(rootFPBHE, resolutionWidth, resolutionHeight));
+        stageFPBHE.show();
     }
 
-    private void enhanceContrastWithPlthe(BufferedImage image) {
-        Histogram histogram = computeHistogram(image);
-        PLTHE.he(image.getHeight(), image.getWidth(), histogram);
-        Image newImage = createImageFromByteArray(image, histogram.getArr(), image.getHeight(), image.getWidth());
+    private BufferedImage enhanceContrastWithPlthe(@NotNull final BufferedImage image) {
+        BufferedImage imagePLTHE = createCopyImage(image);
+        Histogram histogram = computeHistogram(imagePLTHE);
+        PLTHE.he(imagePLTHE.getHeight(), imagePLTHE.getWidth(), histogram);
+        Image newImage = createImageFromByteArray(imagePLTHE, histogram.getArr(), imagePLTHE.getHeight(), imagePLTHE.getWidth());
         plthe.setImage(newImage);
+        return imagePLTHE;
     }
 
 
-    private void enhanceContrastWithTsihe(BufferedImage image) {
-        Histogram histogram = computeHistogram(image);
-        TSIHE.he(image.getHeight(), image.getWidth(), histogram);
-        Image newImage = createImageFromByteArray(image, histogram.getArr(), image.getHeight(), image.getWidth());
+    private BufferedImage enhanceContrastWithTsihe(@NotNull final BufferedImage image) {
+        BufferedImage imageTSIHE = createCopyImage(image);
+        Histogram histogram = computeHistogram(imageTSIHE);
+        TSIHE.he(imageTSIHE.getHeight(), imageTSIHE.getWidth(), histogram);
+        Image newImage = createImageFromByteArray(imageTSIHE, histogram.getArr(), imageTSIHE.getHeight(), image.getWidth());
         tsihe.setImage(newImage);
+        return imageTSIHE;
     }
 
-    private void enhanceContrast(@NotNull BufferedImage image) {
-        Histogram histogram = computeHistogram(image);
-        HistogramEqualization.he(image.getHeight(), image.getWidth(), histogram);
+    private BufferedImage enhanceContrast(@NotNull final BufferedImage image) {
+        BufferedImage imageHE = createCopyImage(image);
+        Histogram histogram = computeHistogram(imageHE);
+        HistogramEqualization.he(imageHE.getHeight(), imageHE.getWidth(), histogram);
 
-        Image newImage = createImageFromByteArray(image, histogram.getArr(), image.getHeight(), image.getWidth());
+        Image newImage = createImageFromByteArray(imageHE, histogram.getArr(), imageHE.getHeight(), imageHE.getWidth());
         histogram_equalization.setImage(newImage);
+        return imageHE;
     }
 
 
