@@ -34,13 +34,9 @@ public class PLTHE {
         byte[] arr = histogramObj.getArr();
         assert arr != null && arr.length > 0;
         assert histogramObj.getCdf().size() == 3;
-        assert histogramObj.getPdf().size() == 3;
         SortedMap<Short, Double> cdf1 = histogramObj.getCdf().get(0);
         SortedMap<Short, Double> cdf2 = histogramObj.getCdf().get(1);
         SortedMap<Short, Double> cdf3 = histogramObj.getCdf().get(2);
-        SortedMap<Short, Double> pdf1 = histogramObj.getPdf().get(0);
-        SortedMap<Short, Double> pdf2 = histogramObj.getPdf().get(1);
-        SortedMap<Short, Double> pdf3 = histogramObj.getPdf().get(2);
 
         for (int i = 0; i < height; ++i) {
             for (int j = 0; j < width; ++j) {
@@ -79,7 +75,7 @@ public class PLTHE {
         for (SortedMap.Entry<Short, Integer> element : hist.getHist().entrySet()) {
             sum += (element.getKey() - mean) * (element.getKey() - mean) * element.getValue();
         }
-        short std_dev = (short) (sum / nrOfPixels);
+        short std_dev = (short) Math.sqrt(sum / nrOfPixels);
 
         return new short[]{std_dev, (short) (255 - std_dev)};
     }

@@ -4,7 +4,6 @@ import com.sun.istack.internal.NotNull;
 
 import java.util.Iterator;
 import java.util.SortedMap;
-import java.util.stream.Collectors;
 
 import static sample.utils.ChangeType.btoS;
 import static sample.utils.ChangeType.dtoB;
@@ -15,16 +14,12 @@ import static sample.utils.ChangeType.dtoB;
 public class FPBHE {
     public static void he(@NotNull Histogram histogramObj) {
         double eps = calculateEps(histogramObj);
-        System.out.println("eps is " + eps);
         double gamma = eps >= 0.5D ? (1D - eps) : eps;
-        System.out.println("gamma is " + gamma);
         gammaCorrection(histogramObj, gamma);
         short splitThreshold = getSplitThreshold(eps);
-        System.out.println("split threshold " + splitThreshold);
         short U = getU(histogramObj, gamma, splitThreshold);
 
         int[] SuSo=getSuSo(histogramObj, U);
-        System.out.println("Su " + SuSo[0] + " So " + SuSo[1]);
         addSuSo(histogramObj, U, SuSo[0], SuSo[1]);
         he(histogramObj, new short[]{0, splitThreshold, 255});
     }
@@ -88,7 +83,6 @@ public class FPBHE {
         }
         int Su = (int) Math.sqrt(sum1 / (double) nrOfGrayLevels1);
         int So = (int) Math.sqrt(sum2 / (double) nrOfGrayLevels2);
-        System.out.println("Su " + Su + "So " + So);
         return new int[] {Su,So};
     }
 
@@ -124,7 +118,6 @@ public class FPBHE {
         short[] means = histogramObj.getMeansGrayLevelInHistogram(new short[]{0, 255});
         assert means != null && means.length == 1;
         short mean = means[0];
-        System.out.println("mean is " + mean);
         return (double) mean / 255D;
     }
 
