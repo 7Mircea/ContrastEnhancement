@@ -6,6 +6,9 @@ import java.util.SortedMap;
 
 import static sample.utils.ChangeType.*;
 
+/**
+ * Plateau limit-based tri-histogram equalization
+ */
 public class PLTHE {
     public static void he(int height, int width, @NotNull Histogram histogramObj) {
         short[] partitionThresholdPoints = new short[]{0, 255};

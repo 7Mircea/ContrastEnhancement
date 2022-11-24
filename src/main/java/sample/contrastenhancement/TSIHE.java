@@ -7,6 +7,9 @@ import java.util.SortedMap;
 import static sample.utils.ChangeType.btoS;
 import static sample.utils.ChangeType.dtoB;
 
+/**
+ * Tripartite Sub-Image Histogram Equalization
+ */
 public class TSIHE {
     public static void he(int height, int width, @NotNull Histogram histogramObj) {
         histogramObj.calculatePDF_CDF();

@@ -9,6 +9,9 @@ import java.util.stream.Collectors;
 import static sample.utils.ChangeType.btoS;
 import static sample.utils.ChangeType.dtoB;
 
+/**
+ * Feature-Preserving Bi-Histogram equalization
+ */
 public class FPBHE {
     public static void he(@NotNull Histogram histogramObj) {
         double eps = calculateEps(histogramObj);
