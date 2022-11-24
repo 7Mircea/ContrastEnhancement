@@ -7,9 +7,9 @@
             fx:controller="sample.controller.PLTHEController"
             prefHeight="400.0" prefWidth="600.0">
     <children>
-        <ImageView fx:id="image_selected" fitHeight="400.0" fitWidth="1000.0" layoutX="14.0" layoutY="14.0"
+        <ImageView fx:id="image_selected" fitHeight="400.0" fitWidth="1000.0" layoutX="314.0" layoutY="14.0"
                    pickOnBounds="true" preserveRatio="true"/>
-        <ImageView fx:id="image_selected_hist" fitHeight="400" fitWidth="1000" layoutX="14.0" layoutY="428.0"   />
+        <ImageView fx:id="image_selected_hist" fitHeight="600" fitWidth="1000" layoutX="14.0" layoutY="428.0"   />
     </children>
 
 </AnchorPane>

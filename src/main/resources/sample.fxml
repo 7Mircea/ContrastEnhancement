@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
-<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
-
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0"
       prefWidth="1280.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="sample.controller.Controller">
@@ -24,14 +21,23 @@
             <children>
                 <ImageView fx:id="image_selected" fitHeight="400.0" fitWidth="400.0" layoutX="14.0" layoutY="14.0"
                            pickOnBounds="true" preserveRatio="true"/>
+                <Label  maxWidth="400.0" maxHeight="20.0" layoutY="416.0" layoutX="190." text="Original"/>
+
                 <ImageView fx:id="histogram_equalization" fitHeight="400.0" fitWidth="400.0" layoutX="428.0"
                            layoutY="14.0" pickOnBounds="true" preserveRatio="true"/>
+                <Label  maxWidth="400.0" maxHeight="20.0" layoutY="416.0" layoutX="590." text="HE"/>
+
                 <ImageView fx:id="tsihe" fitHeight="400.0" fitWidth="400.0" layoutX="842.0" layoutY="14.0"
                            pickOnBounds="true" preserveRatio="true"/>
-                <ImageView fx:id="plthe" fitHeight="400.0" fitWidth="400.0" layoutX="14.0" layoutY="428.0"
+                <Label  maxWidth="400.0" maxHeight="20.0" layoutY="416.0" layoutX="990." text="TSIHE"/>
+
+                <ImageView fx:id="plthe" fitHeight="400.0" fitWidth="400.0" layoutX="14.0" layoutY="448.0"
                            pickOnBounds="true" preserveRatio="true"/>
-                <ImageView fx:id="fpbhe" fitHeight="400.0" fitWidth="400.0" layoutX="428.0" layoutY="428.0"
+                <Label  maxWidth="400.0" maxHeight="20.0" layoutY="850.0" layoutX="190." text="PLTHE"/>
+
+                <ImageView fx:id="fpbhe" fitHeight="400.0" fitWidth="400.0" layoutX="428.0" layoutY="448.0"
                            pickOnBounds="true" preserveRatio="true"/>
+                <Label  maxWidth="400.0" maxHeight="20.0" layoutY="850.0" layoutX="590." text="FPBHE"/>
             </children>
         </AnchorPane>
     </children>

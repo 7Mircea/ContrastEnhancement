@@ -61,12 +61,12 @@ public class PLTHE {
      */
     private static short[] getGrayLevels(final Histogram histogram, int mean) {
         short[] partitionThresholdPoints = new short[4];
-        partitionThresholdPoints[0] = -128;
+        partitionThresholdPoints[0] = 0;
         short[] partitionInnerThresholdPoints = getInnerGrayLevels(histogram, mean);
         assert partitionInnerThresholdPoints.length == 2;
         partitionThresholdPoints[1] = partitionInnerThresholdPoints[0];
         partitionThresholdPoints[2] = partitionInnerThresholdPoints[1];
-        partitionThresholdPoints[3] = 127;
+        partitionThresholdPoints[3] = 255;
         return partitionThresholdPoints;
     }
 

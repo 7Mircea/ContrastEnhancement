@@ -37,9 +37,7 @@ public class TSIHE {
         for (int i = 0; i < height; ++i) {
             for (int j = 0; j < width; ++j) {
                 short grayLevel = btoS(arr[j + i * width]);
-                if (grayLevel == 255) {
-                    System.out.println("gray level 255 found in HE");
-                }
+
                 if (grayLevel >= partitionThresholdPoints[0] && grayLevel < partitionThresholdPoints[1]) {
                     arr[j + i * width] = dtoB(partitionThresholdPoints[1] * (cdf1.get(grayLevel) - 0.5D * pdf1.get(grayLevel)));
                 } else if (grayLevel >= partitionThresholdPoints[1] && grayLevel < partitionThresholdPoints[2]) {
@@ -48,6 +46,7 @@ public class TSIHE {
                     arr[j + i * width] = dtoB(partitionThresholdPoints[2] + (partitionThresholdPoints[3] - partitionThresholdPoints[2]) * (cdf3.get(grayLevel) - 0.5D * pdf3.get(grayLevel)));
                 } else {
                     System.out.println("gray level not in interval [0,255] in TSIHE at HE step");
+                    return;
                 }
             }
         }

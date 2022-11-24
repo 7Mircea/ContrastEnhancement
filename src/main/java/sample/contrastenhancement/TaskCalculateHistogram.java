@@ -42,8 +42,6 @@ public class TaskCalculateHistogram extends Thread {
                 int val = 0;
                 synchronized (hist) {
                     SortedMap<Short, Integer> localHist = hist.getHist();
-                    if (grayLevel == 255)
-                        System.out.println("gray level 255 found in original image");
                     if (localHist.containsKey(grayLevel))
                         val = localHist.get(grayLevel);
                     localHist.put(grayLevel, val + 1);

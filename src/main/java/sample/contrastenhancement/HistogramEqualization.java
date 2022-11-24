@@ -24,9 +24,6 @@ public class HistogramEqualization {
         for (int i = 0; i < height; ++i) {
             for (int j = 0; j < width; ++j) {
                 short grayLevel = btoS(arr[j + i * width]) ;
-                if (grayLevel == 255) {
-                    System.out.println("gray level 255 found in HE");
-                }
                 double value = cdf.get(grayLevel);
                 assert value >=0 && value <=1;
                 arr[j + i * width] = dtoB(255 * value);

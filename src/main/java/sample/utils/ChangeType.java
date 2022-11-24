@@ -28,7 +28,8 @@ public class ChangeType {
      * @return values between [-128,127]
      */
     public static byte dtoB(double arg) {
-        if (arg < 0 || arg > 255) System.out.println("arg " + arg + " not in [0,255]");
+        if (arg < 0 || arg > 255)
+            System.out.println("arg " + arg + " not in [0,255]");
         return (byte) (arg - 128);
     }
 }
