@@ -190,7 +190,7 @@ public class Histogram {
     }
 
     /**
-     * calculates the median of a given histogram. Thus it returns the median from an array of numbers
+     * calculates the median of a given histogram partition. Thus it returns the median from an array of numbers
      * each number representing the number of pixels for a given gray
      *
      * @param partitionThresholdPoints
@@ -216,7 +216,7 @@ public class Histogram {
             }
         }
         Collections.sort(arr);
-        return arr.get(arr.size() / 2);
+        return arr.size() > 1 ? arr.get(arr.size() / 2) : 0;
     }
 
 

@@ -6,6 +6,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -14,6 +15,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import net.sourceforge.tess4j.Tesseract;
+import net.sourceforge.tess4j.TesseractException;
 import sample.contrastenhancement.*;
 
 import java.awt.image.BufferedImage;
@@ -24,6 +27,8 @@ import static sample.utils.Utils.*;
 
 
 public class Controller {
+    @FXML
+    private Label ocr_result;
     @FXML
     private ImageView fpbhe;
     @FXML
@@ -51,7 +56,7 @@ public class Controller {
             return;//opreste procesul de prelucrare al imaginii
         }
         String path = file.getAbsolutePath();//obtine calea absoluta catre acel fisier
-
+        getTextFromImage(path);
 
         BufferedImage originalImage = changeFileToBufferedImage(file);
         if (originalImage == null) {
@@ -69,6 +74,23 @@ public class Controller {
         BufferedImage imageFPBHE = enhanceContrastWithFpbhe(image);
 
         createNewWindows(image, imageHE, imageTSIHE, imagePLTHE, imageFPBHE);
+    }
+
+    private void getTextFromImage(String path) {
+        File image = new File(path);
+        Tesseract tesseract = new Tesseract();
+
+        tesseract.setDatapath("src\\main\\resources\\tessdata");
+        tesseract.setLanguage("eng");
+        tesseract.setPageSegMode(1);
+        tesseract.setOcrEngineMode(1);
+        try {
+            String result = tesseract.doOCR(image);
+            ocr_result.setText(result);
+            System.out.println(result);
+        } catch (TesseractException e) {
+            e.printStackTrace();
+        }
     }
 
     private BufferedImage enhanceContrastWithFpbhe(BufferedImage image) {

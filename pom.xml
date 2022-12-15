@@ -24,10 +24,18 @@
             <version>1.18.24</version>
             <scope>provided</scope>
         </dependency>
+        <!-- for histogram draw -->
         <dependency>
             <groupId>org.jfree</groupId>
             <artifactId>jfreechart-fx</artifactId>
             <version>1.0.1</version>
+        </dependency>
+
+        <!-- for OCR -->
+        <dependency>
+            <groupId>net.sourceforge.tess4j</groupId>
+            <artifactId>tess4j</artifactId>
+            <version>4.5.1</version>
         </dependency>
 
     </dependencies>

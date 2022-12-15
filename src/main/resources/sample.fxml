@@ -38,6 +38,7 @@
                 <ImageView fx:id="fpbhe" fitHeight="400.0" fitWidth="400.0" layoutX="428.0" layoutY="448.0"
                            pickOnBounds="true" preserveRatio="true"/>
                 <Label  maxWidth="400.0" maxHeight="20.0" layoutY="850.0" layoutX="590." text="FPBHE"/>
+                <Label  fx:id="ocr_result" maxWidth="400.0" maxHeight="400.0" layoutY="448.0" layoutX="840." text="Here will be the result of OCR"/>
             </children>
         </AnchorPane>
     </children>
