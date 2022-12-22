@@ -7,6 +7,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.*;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import static java.awt.image.BufferedImage.TYPE_BYTE_GRAY;
@@ -21,12 +22,13 @@ public class Utils {
 
     /**
      * creates a hard copy of original
+     *
      * @param original image to be copied
      * @return hard copy of original
      */
     public static BufferedImage createCopyImage(BufferedImage original) {
         BufferedImage newImage = new BufferedImage(original.getWidth(), original.getHeight(), TYPE_BYTE_GRAY);
-        setArrayOfPixels(newImage,((DataBufferByte)original.getData().getDataBuffer()).getData());
+        setArrayOfPixels(newImage, ((DataBufferByte) original.getData().getDataBuffer()).getData());
         return newImage;
     }
 
@@ -74,6 +76,35 @@ public class Utils {
 
     public static byte[] getArrayOfPixels(BufferedImage image) {
         return ((DataBufferByte) image.getData().getDataBuffer()).getData();
+    }
+
+    /**
+     * @param image BufferedImage to be changed to File
+     * @param title title of the File returned, should be unique
+     * @return java.io.File
+     */
+    public static File changeBufferedImageToFile(BufferedImage image, String title) {
+        File outputfile = null;
+        String path = "src\\main\\resources\\temp\\" + title;
+        try {
+            outputfile = File.createTempFile(title,".tif");
+            ImageIO.write(image, "tif", outputfile);
+        } catch (IOException e) {
+            if (e instanceof FileNotFoundException) {
+                System.out.println(path + " not found");
+            } else
+                e.printStackTrace();
+        }
+        return outputfile;
+    }
+
+    public static int min(int a, int b, int c) {
+        int min = a;
+        if (a < b && a <c)
+            return a;
+        else if (b < c)
+            return b;
+        else return c;
     }
 
 }

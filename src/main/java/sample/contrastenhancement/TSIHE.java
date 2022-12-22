@@ -27,13 +27,17 @@ public class TSIHE {
         SortedMap<Short, Double> cdf1 = histogramObj.getCdf().get(0);
         assert cdf1.size() > 0;
         SortedMap<Short, Double> cdf2 = histogramObj.getCdf().get(1);
-        assert cdf2.size() > 0;
+        if (cdf2.size() > 0) {
+            System.out.println("You might have problems");
+        }
         SortedMap<Short, Double> cdf3 = histogramObj.getCdf().get(2);
         assert cdf3.size() > 0;
         SortedMap<Short, Double> pdf1 = histogramObj.getPdf().get(0);
         assert pdf1.size() > 0;
         SortedMap<Short, Double> pdf2 = histogramObj.getPdf().get(1);
-        assert pdf2.size() > 0;
+        if (pdf2.size() > 0) {
+            System.out.println("You might have a problem");
+        }
         SortedMap<Short, Double> pdf3 = histogramObj.getPdf().get(2);
         assert pdf3.size() > 0;
 

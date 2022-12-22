@@ -7,26 +7,35 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
 import sample.contrastenhancement.*;
+import sample.model.TextFromImage;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import static sample.utils.ErrorCalculation.calculateCER;
 import static sample.utils.Utils.*;
 
 
 public class Controller {
+    private static final int resolutionWidth = 1910;
+    private static final int resolutionHeight = 1070;
+    private final AtomicInteger batchNr = new AtomicInteger(0);
+    private final Map<String, TextFromImage> textFromImageList = new HashMap<>();
+    private final Map<String, TextFromImage> syncTextFromImageList = Collections.synchronizedMap(textFromImageList);
     @FXML
     private Label ocr_result;
     @FXML
@@ -42,9 +51,82 @@ public class Controller {
     @FXML
     private ImageView tsihe;
 
-    private static final int resolutionWidth = 1910;
-    private static final int resolutionHeight = 1070;
+    @FXML
+    private void chooseDirectory(ActionEvent event) {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setInitialDirectory(new File("e:\\CTI\\AN2\\SEM1\\ACI\\Proiect\\Dataset\\temp\\input\\"));
+        Stage stage = (Stage) anchor_pane.getScene().getWindow();//obtinerea ferestrei principale
+        File directory = directoryChooser.showDialog(stage);
+        if (directory == null) {//daca nu a fost ales nici un fisier
+            System.out.println("Directory doesn't exist");//indica acest lucru
+            return;//opreste procesul de prelucrare al imaginii
+        }
+        File[] contentsInput = directory.listFiles();
+        String parent = directory.getParent();
+        String outputDirectoryPath = parent + "\\output";
+        File[] contentsOutput = new File(outputDirectoryPath).listFiles();
+        System.out.println(outputDirectoryPath);
+        if (contentsInput != null && contentsOutput != null) {
+            Arrays.stream(contentsInput).parallel().forEach(file -> {
+                int nr = batchNr.incrementAndGet();
+                String name = file.getName();
+                System.out.println("current file " + file);
+                final BufferedImage image = changeToGray(changeFileToBufferedImage(file));
+                BufferedImage imageHE = enhanceContrast(image);
+                BufferedImage imageTSIHE = enhanceContrastWithTsihe(image);
+                BufferedImage imagePLTHE = enhanceContrastWithPlthe(image);
+                BufferedImage imageFPBHE = enhanceContrastWithFpbhe(image);
+                File fileHE = changeBufferedImageToFile(imageHE, name + nr);
+                File fileTSIHE = changeBufferedImageToFile(imageTSIHE, name + nr);
+                File filePLTHE = changeBufferedImageToFile(imagePLTHE, name + nr);
+                File fileFPBHE = changeBufferedImageToFile(imageFPBHE, name + nr);
+                String textHE = getTextFromImage(fileHE);
+                String textTSIHE = getTextFromImage(fileTSIHE);
+                String textPLTHE = getTextFromImage(filePLTHE);
+                String textFPBHE = getTextFromImage(fileFPBHE);
+                syncTextFromImageList.put(name, new TextFromImage(textHE, textTSIHE, textPLTHE, textFPBHE));
+            });
+            Arrays.stream(contentsOutput).parallel().forEach(currentFile -> {
+                String name = currentFile.getName();
+                String text = getTextFromImage(currentFile);
+                TextFromImage txtFromImg = textFromImageList.get(name);
 
+                showCERandWER(name,text,txtFromImg);
+            });
+        } else {
+            System.out.println("empty directory");
+        }
+    }
+
+    private void showCERandWER(String fileName,String text, TextFromImage txtFromImg) {
+        float heCER = calculateCER(text,txtFromImg.getHe());
+        float tsiheCER = calculateCER(text,txtFromImg.getTsihe());
+        float pltheCER = calculateCER(text,txtFromImg.getPlthe());
+        float fpbheCER = calculateCER(text,txtFromImg.getFpbhe());
+//        saveCERResult(heCER,tsiheCER,pltheCER,fpbheCER);
+
+        System.out.printf("%nFor file %s CER is :%n",fileName);
+        System.out.printf("he :%f. ",heCER);
+        System.out.printf("tsihe :%f. ",tsiheCER);
+        System.out.printf("plthe :%f. ",pltheCER);
+        System.out.printf("fpbhe :%f.",fpbheCER);
+
+    }
+
+    private void saveCERResult(float heCER, float tsiheCER, float pltheCER, float fpbheCER) {
+        try {
+            File txtFile = new File("CER_RESULT.csv");
+            if (!txtFile.exists()) {
+                txtFile.createNewFile();
+            }
+            BufferedWriter writer = new BufferedWriter(new FileWriter(txtFile));
+            String result = String.format("%f,%f,%f,%f %n",heCER,tsiheCER,pltheCER,fpbheCER);
+            writer.append(result);
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     @FXML
     private void chooseFile(ActionEvent event) {
@@ -78,12 +160,7 @@ public class Controller {
 
     private void getTextFromImage(String path) {
         File image = new File(path);
-        Tesseract tesseract = new Tesseract();
-
-        tesseract.setDatapath("src\\main\\resources\\tessdata");
-        tesseract.setLanguage("eng");
-        tesseract.setPageSegMode(1);
-        tesseract.setOcrEngineMode(1);
+        Tesseract tesseract = getTesseract();
         try {
             String result = tesseract.doOCR(image);
             ocr_result.setText(result);
@@ -91,6 +168,27 @@ public class Controller {
         } catch (TesseractException e) {
             e.printStackTrace();
         }
+    }
+
+    private String getTextFromImage(File image) {
+        Tesseract tesseract = getTesseract();
+        String result = null;
+        try {
+            result = tesseract.doOCR(image);
+        } catch (TesseractException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    private Tesseract getTesseract() {
+        Tesseract tesseract = new Tesseract();
+
+        tesseract.setDatapath("src\\main\\resources\\tessdata");
+        tesseract.setLanguage("eng");
+        tesseract.setPageSegMode(1);
+        tesseract.setOcrEngineMode(1);
+        return tesseract;
     }
 
     private BufferedImage enhanceContrastWithFpbhe(BufferedImage image) {
