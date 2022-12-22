@@ -6,9 +6,8 @@ import javafx.scene.image.Image;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.*;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
+import java.util.Locale;
 
 import static java.awt.image.BufferedImage.TYPE_BYTE_GRAY;
 
@@ -105,6 +104,25 @@ public class Utils {
         else if (b < c)
             return b;
         else return c;
+    }
+
+    public static void saveResults(String fileName, float heCER, float tsiheCER, float pltheCER, float fpbheCER) {
+        try {
+            File txtFile = new File(fileName);
+            if (!txtFile.exists()) {
+                boolean succes = txtFile.createNewFile();
+                if (!succes) {
+                    System.out.println("file cannot be created");
+                    return;
+                }
+            }
+            BufferedWriter writer = new BufferedWriter(new FileWriter(txtFile,true));
+            String result = String.format(Locale.ENGLISH,"%f,%f,%f,%f %n",heCER,tsiheCER,pltheCER,fpbheCER);
+            writer.append(result);
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

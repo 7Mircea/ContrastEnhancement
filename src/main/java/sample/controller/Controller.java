@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static sample.utils.ErrorCalculation.calculateCER;
+import static sample.utils.ErrorCalculation.calculateWER;
 import static sample.utils.Utils.*;
 
 
@@ -103,29 +104,20 @@ public class Controller {
         float tsiheCER = calculateCER(text,txtFromImg.getTsihe());
         float pltheCER = calculateCER(text,txtFromImg.getPlthe());
         float fpbheCER = calculateCER(text,txtFromImg.getFpbhe());
-//        saveCERResult(heCER,tsiheCER,pltheCER,fpbheCER);
+        float heWER = calculateWER(text,txtFromImg.getHe());
+        float tsiheWER = calculateWER(text,txtFromImg.getTsihe());
+        float pltheWER = calculateWER(text,txtFromImg.getPlthe());
+        float fpbheWER = calculateWER(text,txtFromImg.getFpbhe());
+        saveResults("CER_RESULTS.csv",heCER,tsiheCER,pltheCER,fpbheCER);
+        saveResults("WER_RESULTS.csv",heWER,tsiheWER,pltheWER,fpbheWER);
 
-        System.out.printf("%nFor file %s CER is :%n",fileName);
-        System.out.printf("he :%f. ",heCER);
-        System.out.printf("tsihe :%f. ",tsiheCER);
-        System.out.printf("plthe :%f. ",pltheCER);
-        System.out.printf("fpbhe :%f.",fpbheCER);
+//        System.out.printf("%nFor file %s CER is :%n",fileName);
+//        System.out.printf("he :%f. ",heCER);
+//        System.out.printf("tsihe :%f. ",tsiheCER);
+//        System.out.printf("plthe :%f. ",pltheCER);
+//        System.out.printf("fpbhe :%f.",fpbheCER);
 
-    }
 
-    private void saveCERResult(float heCER, float tsiheCER, float pltheCER, float fpbheCER) {
-        try {
-            File txtFile = new File("CER_RESULT.csv");
-            if (!txtFile.exists()) {
-                txtFile.createNewFile();
-            }
-            BufferedWriter writer = new BufferedWriter(new FileWriter(txtFile));
-            String result = String.format("%f,%f,%f,%f %n",heCER,tsiheCER,pltheCER,fpbheCER);
-            writer.append(result);
-            writer.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @FXML
