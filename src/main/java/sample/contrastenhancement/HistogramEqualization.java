@@ -1,6 +1,7 @@
 package sample.contrastenhancement;
 
 import com.sun.istack.internal.NotNull;
+import sample.utils.HistogramDraw;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -12,6 +13,8 @@ public class HistogramEqualization {
     public static void he(int height, int width, @NotNull Histogram histogramObj) {
         histogramObj.calculatePDF_CDF();
         Map<Short, Double> cdf = histogramObj.getCdf().get(0);
+        HistogramDraw draw = new HistogramDraw();
+        draw.createAreaChart("cdf - HE",0,255,false,-1,-1,true,cdf);
         byte[] arr = histogramObj.getArr();
         if (cdf == null || cdf.isEmpty()) {
             System.out.println("cdf is empty in HistogramEqualization.he()");

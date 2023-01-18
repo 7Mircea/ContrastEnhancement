@@ -147,7 +147,12 @@ public class Controller {
         BufferedImage imagePLTHE = enhanceContrastWithPlthe(image);
         BufferedImage imageFPBHE = enhanceContrastWithFpbhe(image);
 
-        createNewWindows(image, imageHE, imageTSIHE, imagePLTHE, imageFPBHE);
+//        createNewWindows(image, imageHE, imageTSIHE, imagePLTHE, imageFPBHE);
+        createNewWindow(image, "Gray image");
+        createNewWindow(imageHE, "HE image");
+        createNewWindow(imageTSIHE, "TSIHE image");
+        createNewWindow(imagePLTHE, "PLTHE image");
+        createNewWindow(imageFPBHE, "FPBHE image");
     }
 
     private void getTextFromImage(String path) {
@@ -192,66 +197,23 @@ public class Controller {
         return imageFPBHE;
     }
 
-    private void createNewWindows(BufferedImage imageGray, BufferedImage imageHE, BufferedImage imageTSIHE, BufferedImage imagePLTHE, BufferedImage imageFPBHE) {
-        FXMLLoader grayLoader = new FXMLLoader(getClass().getClassLoader().getResource("gray.fxml"));
-        FXMLLoader heLoader = new FXMLLoader(getClass().getClassLoader().getResource("he.fxml"));
-        FXMLLoader tsiheLoader = new FXMLLoader(getClass().getClassLoader().getResource("tsihe.fxml"));
-        FXMLLoader pltheLoader = new FXMLLoader(getClass().getClassLoader().getResource("plthe.fxml"));
-        FXMLLoader fpbheLoader = new FXMLLoader(getClass().getClassLoader().getResource("fpbhe.fxml"));
-
-        Parent rootGray;
-        Parent rootHE;
-        Parent rootTSIHE;
-        Parent rootPLTHE;
-        Parent rootFPBHE;
+    private void createNewWindow(BufferedImage image, String title) {
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getClassLoader().getResource("detail.fxml"));
+        Parent root;
         try {
-            rootGray = grayLoader.load();
-            rootHE = heLoader.load();//obtine obiectul parinte pentru GUI
-            rootTSIHE = tsiheLoader.load();//obtine obiectul parinte pentru GUI
-            rootPLTHE = pltheLoader.load();//obtine obiectul parinte pentru GUI
-            rootFPBHE = fpbheLoader.load();//obtine obiectul parinte pentru GUI
+            root = fxmlLoader.load();
         } catch (IOException e) {
             System.out.println("error ar reading fxml ui files");
             e.printStackTrace();
             return;
         }
-
-        GrayController grayController = grayLoader.getController();
-        grayController.setImage(imageGray);
-        grayController.setHistogram(imageGray);
-        HEController heController = heLoader.getController();
-        heController.setImage(imageHE);
-        heController.setHistogram(imageHE);
-        TSIHEController tsihe = tsiheLoader.getController();
-        tsihe.setImage(imageTSIHE);
-        tsihe.setHistogram(imageTSIHE);
-        PLTHEController plthe = pltheLoader.getController();
-        plthe.setImage(imagePLTHE);
-        plthe.setHistogram(imagePLTHE);
-        FPBHEController fpbhe = fpbheLoader.getController();
-        fpbhe.setImage(imageFPBHE);
-        fpbhe.setHistogram(imageFPBHE);
-
+        BaseController grayController = fxmlLoader.getController();
+        grayController.setImage(image);
+        grayController.setHistogram(image);
         Stage stageGray = new Stage();
-        stageGray.setTitle("Gray image");
-        stageGray.setScene(new Scene(rootGray, resolutionWidth, resolutionHeight));
+        stageGray.setTitle(title);
+        stageGray.setScene(new Scene(root, resolutionWidth, resolutionHeight));
         stageGray.show();
-        Stage stageHE = new Stage();
-        stageHE.setTitle("Histogram Equalization");
-        stageHE.setScene(new Scene(rootHE, resolutionWidth, resolutionHeight));
-        stageHE.show();
-        Stage stageTSIHE = new Stage();
-        stageTSIHE.setTitle("Tripartite Sub-Image Histogram Equalization");
-        stageTSIHE.setScene(new Scene(rootTSIHE, resolutionWidth, resolutionHeight));
-        stageTSIHE.show();
-        Stage stagePLTHE = new Stage();
-        stagePLTHE.setTitle("Plateau limit-based tri-histogram equalisation");
-        stagePLTHE.setScene(new Scene(rootPLTHE, resolutionWidth, resolutionHeight));
-        stagePLTHE.show();
-        Stage stageFPBHE = new Stage();
-        stageFPBHE.setTitle("Feature-preserving bi-histogram equalization");
-        stageFPBHE.setScene(new Scene(rootFPBHE, resolutionWidth, resolutionHeight));
-        stageFPBHE.show();
     }
 
     private BufferedImage enhanceContrastWithPlthe(@NotNull final BufferedImage image) {
